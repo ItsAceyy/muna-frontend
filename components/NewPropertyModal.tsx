@@ -43,13 +43,6 @@ const FALLBACK_TYPES: BusinessTypeOption[] = [
     property_type: "hotel",
     vertical: "hotel",
   },
-  {
-    key: "gym",
-    label: "Gym",
-    description: "A single facility with member and guest check-ins.",
-    property_type: "gym",
-    vertical: "gym",
-  },
 ];
 
 const inputClass =
