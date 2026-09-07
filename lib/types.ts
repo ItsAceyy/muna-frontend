@@ -302,3 +302,45 @@ export interface PropertyConfig {
   config: VerticalConfig;
   enabled_modules: string[];
 }
+
+// --- Resident portal ---
+
+export type WorkOrderPriority = "low" | "medium" | "high" | "urgent";
+
+export interface GuestInviteRecord {
+  id: string;
+  property_id: string;
+  unit_id: string | null;
+  visit_type: VisitType;
+  invited_by: string | null;
+  checked_in_by: string | null;
+  guest_name: string | null;
+  guest_phone: string | null;
+  guest_email: string | null;
+  host_name: string | null;
+  purpose: string | null;
+  token: string;
+  status: GuestVisitStatus;
+  expires_at: string;
+  created_at: string;
+}
+
+export interface MyVisitorHistoryItem {
+  guest_invite_id: string;
+  unit_id: string | null;
+  guest_name: string;
+  checked_in_at: string;
+  status: GuestVisitStatus;
+}
+
+export interface Package {
+  id: string;
+  unit_id: string;
+  unit_number: string | null;
+  property_id: string;
+  description: string | null;
+  logged_by_user_id: string;
+  status: string;
+  created_at: string;
+  picked_up_at: string | null;
+}
