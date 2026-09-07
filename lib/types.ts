@@ -203,3 +203,102 @@ export interface WorkOrder {
   updated_at: string;
   resolved_at: string | null;
 }
+// --- Visitors / guard console ---
+
+export type VisitType = "resident_invite" | "walk_in";
+
+export type GuestVisitStatus =
+  | "pending"
+  | "checked_in"
+  | "checked_out"
+  | "expired"
+  | "revoked";
+
+export type IdType = "passport" | "national_id" | "drivers_license";
+
+export interface GuardUnit {
+  id: string;
+  unit_number: string;
+  floor: string | null;
+}
+
+export interface GuestOccupancyEntry {
+  invite_id: string;
+  unit_id: string | null;
+  unit_number: string | null;
+  visit_type: VisitType;
+  host_name: string | null;
+  purpose: string | null;
+  full_name: string;
+  phone: string | null;
+  photo_url: string | null;
+  checked_in_at: string;
+}
+
+export interface GuestLogEntry {
+  invite_id: string;
+  unit_id: string | null;
+  unit_number: string | null;
+  visit_type: VisitType;
+  host_name: string | null;
+  purpose: string | null;
+  guest_name: string | null;
+  full_name: string | null;
+  status: GuestVisitStatus;
+  checked_in_at: string | null;
+  checked_out_at: string | null;
+  created_at: string;
+  expires_at: string;
+}
+
+export interface WalkInCheckinResult {
+  invite_id: string;
+  property_id: string;
+  unit_id: string | null;
+  unit_number: string | null;
+  host_name: string | null;
+  purpose: string | null;
+  full_name: string;
+  phone: string;
+  photo_url: string | null;
+  checked_in_at: string;
+}
+
+// --- Business type / vertical configuration ---
+
+export type PropertyVertical = "residential" | "hotel" | "office" | "gym";
+
+export interface BusinessTypeOption {
+  key: string;
+  label: string;
+  description: string;
+  property_type: string;
+  vertical: PropertyVertical;
+}
+
+export interface VerticalConfig {
+  key: string;
+  label: string;
+  description: string;
+  space_noun: string;
+  space_noun_plural: string;
+  occupant_noun: string;
+  occupant_noun_plural: string;
+  visitor_noun: string;
+  has_spaces: boolean;
+  tracks_occupancy: boolean;
+  requires_id_capture: boolean;
+  allows_walk_ins: boolean;
+  default_modules: string[];
+}
+
+export interface PropertyConfig {
+  property_id: string;
+  name: string;
+  property_type: string;
+  vertical: PropertyVertical;
+  business_type_key: string | null;
+  business_type_label: string | null;
+  config: VerticalConfig;
+  enabled_modules: string[];
+}
