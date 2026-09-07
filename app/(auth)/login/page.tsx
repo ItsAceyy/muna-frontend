@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { login, getMyAccess, decideRedirectPath } from "@/lib/auth";
+import { login, getMyAccess, getCurrentUser, decideRedirectPath } from "@/lib/auth";
 import { ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,9 @@ export default function LoginPage() {
     try {
       await login(email, password);
       const access = await getMyAccess();
-      router.push(decideRedirectPath(access));
+      // A super admin has no property role, so the flag decides where they land.
+      const me = await getCurrentUser();
+      router.push(decideRedirectPath(access, me.is_platform_admin));
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);

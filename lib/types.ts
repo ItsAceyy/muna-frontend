@@ -344,3 +344,31 @@ export interface Package {
   created_at: string;
   picked_up_at: string | null;
 }
+
+// --- Platform admin (super admin) ---
+
+export interface PlatformOverview {
+  total_clients: number;
+  awaiting_verification: number;
+  verified_clients: number;
+  rejected: number;
+}
+
+export interface ClientSummary {
+  organization_id: string;
+  name: string;
+  org_type: OrgType;
+  approval_status: ApprovalStatus;
+  created_at: string;
+  owner_name: string | null;
+  owner_email: string | null;
+  property_count: number;
+}
+
+export interface CurrentUser {
+  id: string;
+  email: string;
+  full_name: string | null;
+  created_at: string;
+  is_platform_admin: boolean;
+}
