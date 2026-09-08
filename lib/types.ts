@@ -203,3 +203,172 @@ export interface WorkOrder {
   updated_at: string;
   resolved_at: string | null;
 }
+// --- Visitors / guard console ---
+
+export type VisitType = "resident_invite" | "walk_in";
+
+export type GuestVisitStatus =
+  | "pending"
+  | "checked_in"
+  | "checked_out"
+  | "expired"
+  | "revoked";
+
+export type IdType = "passport" | "national_id" | "drivers_license";
+
+export interface GuardUnit {
+  id: string;
+  unit_number: string;
+  floor: string | null;
+}
+
+export interface GuestOccupancyEntry {
+  invite_id: string;
+  unit_id: string | null;
+  unit_number: string | null;
+  visit_type: VisitType;
+  host_name: string | null;
+  purpose: string | null;
+  full_name: string;
+  phone: string | null;
+  photo_url: string | null;
+  checked_in_at: string;
+}
+
+export interface GuestLogEntry {
+  invite_id: string;
+  unit_id: string | null;
+  unit_number: string | null;
+  visit_type: VisitType;
+  host_name: string | null;
+  purpose: string | null;
+  guest_name: string | null;
+  full_name: string | null;
+  status: GuestVisitStatus;
+  checked_in_at: string | null;
+  checked_out_at: string | null;
+  created_at: string;
+  expires_at: string;
+}
+
+export interface WalkInCheckinResult {
+  invite_id: string;
+  property_id: string;
+  unit_id: string | null;
+  unit_number: string | null;
+  host_name: string | null;
+  purpose: string | null;
+  full_name: string;
+  phone: string;
+  photo_url: string | null;
+  checked_in_at: string;
+}
+
+// --- Business type / vertical configuration ---
+
+export type PropertyVertical = "residential" | "hotel" | "office" | "gym";
+
+export interface BusinessTypeOption {
+  key: string;
+  label: string;
+  description: string;
+  property_type: string;
+  vertical: PropertyVertical;
+}
+
+export interface VerticalConfig {
+  key: string;
+  label: string;
+  description: string;
+  space_noun: string;
+  space_noun_plural: string;
+  occupant_noun: string;
+  occupant_noun_plural: string;
+  visitor_noun: string;
+  has_spaces: boolean;
+  tracks_occupancy: boolean;
+  requires_id_capture: boolean;
+  allows_walk_ins: boolean;
+  default_modules: string[];
+}
+
+export interface PropertyConfig {
+  property_id: string;
+  name: string;
+  property_type: string;
+  vertical: PropertyVertical;
+  business_type_key: string | null;
+  business_type_label: string | null;
+  config: VerticalConfig;
+  enabled_modules: string[];
+}
+
+// --- Resident portal ---
+
+export type WorkOrderPriority = "low" | "medium" | "high" | "urgent";
+
+export interface GuestInviteRecord {
+  id: string;
+  property_id: string;
+  unit_id: string | null;
+  visit_type: VisitType;
+  invited_by: string | null;
+  checked_in_by: string | null;
+  guest_name: string | null;
+  guest_phone: string | null;
+  guest_email: string | null;
+  host_name: string | null;
+  purpose: string | null;
+  token: string;
+  status: GuestVisitStatus;
+  expires_at: string;
+  created_at: string;
+}
+
+export interface MyVisitorHistoryItem {
+  guest_invite_id: string;
+  unit_id: string | null;
+  guest_name: string;
+  checked_in_at: string;
+  status: GuestVisitStatus;
+}
+
+export interface Package {
+  id: string;
+  unit_id: string;
+  unit_number: string | null;
+  property_id: string;
+  description: string | null;
+  logged_by_user_id: string;
+  status: string;
+  created_at: string;
+  picked_up_at: string | null;
+}
+
+// --- Platform admin (super admin) ---
+
+export interface PlatformOverview {
+  total_clients: number;
+  awaiting_verification: number;
+  verified_clients: number;
+  rejected: number;
+}
+
+export interface ClientSummary {
+  organization_id: string;
+  name: string;
+  org_type: OrgType;
+  approval_status: ApprovalStatus;
+  created_at: string;
+  owner_name: string | null;
+  owner_email: string | null;
+  property_count: number;
+}
+
+export interface CurrentUser {
+  id: string;
+  email: string;
+  full_name: string | null;
+  created_at: string;
+  is_platform_admin: boolean;
+}

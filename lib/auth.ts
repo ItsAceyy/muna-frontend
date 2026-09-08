@@ -1,5 +1,5 @@
 import { apiFetch, setToken, clearToken } from "./api-client";
-import { InviteDetails, InviteAcceptRequest, MyAccessItem } from "./types";
+import { CurrentUser, InviteDetails, InviteAcceptRequest, MyAccessItem } from "./types";
 
 interface LoginResponse {
   access_token: string;
@@ -95,7 +95,17 @@ export async function getMyAccess(): Promise<MyAccessItem[]> {
   return apiFetch<MyAccessItem[]>("/me/access");
 }
 
-export function decideRedirectPath(access: MyAccessItem[]): string {
+export async function getCurrentUser(): Promise<CurrentUser> {
+  return apiFetch<CurrentUser>("/auth/me");
+}
+
+export function decideRedirectPath(
+  access: MyAccessItem[],
+  isPlatformAdmin = false
+): string {
+  // A super admin runs the platform rather than a property, so they land on the
+  // client roster. They can still reach their own dashboard from there.
+  if (isPlatformAdmin) return "/admin";
   if (access.some((a) => a.role === "owner")) return "/dashboard";
   if (access.some((a) => a.role === "manager")) return "/manager";
   if (access.some((a) => a.role === "staff")) return "/manager";

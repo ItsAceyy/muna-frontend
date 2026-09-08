@@ -26,6 +26,7 @@
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
@@ -44,6 +45,8 @@
   --color-rust: var(--rust);
   --color-ink: var(--ink);
   --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-faint: var(--faint);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -51,90 +54,184 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --shadow-xs: var(--elevation-xs);
+  --shadow-sm: var(--elevation-sm);
+  --shadow-md: var(--elevation-md);
+  --shadow-lg: var(--elevation-lg);
 }
 
+/*
+  Haven — clean and premium.
+
+  The restraint is the point. One accent (bronze) used sparingly against a paper
+  ground and near-white surfaces; everything else earns its place through spacing,
+  weight and a finely-graded neutral ramp rather than colour. Shadows are warm-tinted
+  and very low opacity, because pure-black shadows on a warm ground read as cheap.
+*/
 :root {
-  --background: #F1ECE1;
-  --foreground: #1E1B18;
-  --card: #FBF8F2;
-  --card-foreground: #1E1B18;
-  --popover: #FBF8F2;
-  --popover-foreground: #1E1B18;
-  --primary: #1E1B18;
-  --primary-foreground: #F1ECE1;
-  --secondary: #E8E1D3;
-  --secondary-foreground: #1E1B18;
-  --muted: #E8E1D3;
-  --muted-foreground: #6B6560;
-  --accent: #B8935A;
-  --accent-foreground: #1E1B18;
-  --destructive: #C2745C;
-  --border: #DCD4C4;
-  --input: #DCD4C4;
-  --ring: #B8935A;
-  --chart-1: #B8935A;
-  --chart-2: #7C9473;
-  --chart-3: #C2745C;
-  --chart-4: #6B6560;
-  --chart-5: #1E1B18;
-  --radius: 0.75rem;
-  --sidebar: #1E1B18;
-  --sidebar-foreground: #F1ECE1;
-  --sidebar-primary: #B8935A;
-  --sidebar-primary-foreground: #1E1B18;
-  --sidebar-accent: #2A2622;
-  --sidebar-accent-foreground: #F1ECE1;
-  --sidebar-border: #33302B;
-  --sidebar-ring: #B8935A;
-  --sage: #7C9473;
-  --gold: #B8935A;
-  --rust: #C2745C;
-  --ink: #1E1B18;
-  --canvas: #F1ECE1;
+  /* Paper ground — lighter and less yellow than a parchment cream, so the
+     interface reads as clean rather than nostalgic. */
+  --canvas: #F5F2EC;
+  --background: #F5F2EC;
+  --surface: #FAF8F3;
+  --card: #FFFEFB;
+  --popover: #FFFEFB;
+
+  --ink: #191714;
+  --foreground: #191714;
+  --card-foreground: #191714;
+  --popover-foreground: #191714;
+
+  --primary: #191714;
+  --primary-foreground: #F7F4EE;
+
+  --secondary: #EDE8DE;
+  --secondary-foreground: #191714;
+
+  --muted: #EDE8DE;
+  --muted-foreground: #6E6862;
+  --faint: #98918A;
+
+  /* Bronze, not brass. Deeper and less saturated than a bright gold, which is what
+     keeps it premium rather than loud. */
+  --gold: #A98550;
+  --accent: #A98550;
+  --accent-foreground: #191714;
+
+  --sage: #6E8A67;
+  --rust: #B3654D;
+  --destructive: #B3654D;
+
+  --border: #E4DED2;
+  --border-strong: #D6CEBE;
+  --input: #E4DED2;
+  --ring: #A98550;
+
+  --chart-1: #A98550;
+  --chart-2: #6E8A67;
+  --chart-3: #B3654D;
+  --chart-4: #8C857D;
+  --chart-5: #191714;
+
+  --radius: 0.875rem;
+
+  /* Warm-tinted elevation. The shadow colour is the ink, never pure black. */
+  --elevation-xs: 0 1px 2px 0 rgb(25 23 20 / 0.04);
+  --elevation-sm: 0 1px 3px 0 rgb(25 23 20 / 0.05), 0 1px 2px -1px rgb(25 23 20 / 0.04);
+  --elevation-md: 0 4px 12px -2px rgb(25 23 20 / 0.06), 0 2px 4px -2px rgb(25 23 20 / 0.04);
+  --elevation-lg: 0 12px 28px -6px rgb(25 23 20 / 0.10), 0 4px 8px -4px rgb(25 23 20 / 0.05);
+
+  --sidebar: #191714;
+  --sidebar-foreground: #F7F4EE;
+  --sidebar-primary: #C9A46A;
+  --sidebar-primary-foreground: #191714;
+  --sidebar-accent: #24211D;
+  --sidebar-accent-foreground: #F7F4EE;
+  --sidebar-border: #2E2A25;
+  --sidebar-ring: #C9A46A;
 }
 
 .dark {
-  --background: #1E1B18;
-  --foreground: #F1ECE1;
-  --card: #2A2622;
-  --card-foreground: #F1ECE1;
-  --popover: #2A2622;
-  --popover-foreground: #F1ECE1;
-  --primary: #B8935A;
-  --primary-foreground: #1E1B18;
-  --secondary: #33302B;
-  --secondary-foreground: #F1ECE1;
-  --muted: #33302B;
-  --muted-foreground: #A39C90;
-  --accent: #B8935A;
-  --accent-foreground: #1E1B18;
-  --destructive: #C2745C;
-  --border: #33302B;
-  --input: #33302B;
-  --ring: #B8935A;
-  --chart-1: #B8935A;
-  --chart-2: #7C9473;
-  --chart-3: #C2745C;
-  --chart-4: #A39C90;
-  --chart-5: #F1ECE1;
-  --sidebar: #1E1B18;
-  --sidebar-foreground: #F1ECE1;
-  --sidebar-primary: #B8935A;
-  --sidebar-primary-foreground: #1E1B18;
-  --sidebar-accent: #2A2622;
-  --sidebar-accent-foreground: #F1ECE1;
-  --sidebar-border: #33302B;
-  --sidebar-ring: #B8935A;
+  --canvas: #16140F;
+  --background: #16140F;
+  --surface: #1D1A16;
+  --card: #201D18;
+  --popover: #201D18;
+
+  --ink: #F2EEE6;
+  --foreground: #F2EEE6;
+  --card-foreground: #F2EEE6;
+  --popover-foreground: #F2EEE6;
+
+  --primary: #C9A46A;
+  --primary-foreground: #16140F;
+
+  --secondary: #2A261F;
+  --secondary-foreground: #F2EEE6;
+
+  --muted: #2A261F;
+  --muted-foreground: #A79F94;
+  --faint: #7C746A;
+
+  /* Lifted on dark: the same bronze goes muddy against a dark ground. */
+  --gold: #C9A46A;
+  --accent: #C9A46A;
+  --accent-foreground: #16140F;
+
+  --sage: #8CA985;
+  --rust: #CE7F66;
+  --destructive: #CE7F66;
+
+  --border: #2E2A23;
+  --border-strong: #3D382F;
+  --input: #2E2A23;
+  --ring: #C9A46A;
+
+  --chart-1: #C9A46A;
+  --chart-2: #8CA985;
+  --chart-3: #CE7F66;
+  --chart-4: #A79F94;
+  --chart-5: #F2EEE6;
+
+  --elevation-xs: 0 1px 2px 0 rgb(0 0 0 / 0.30);
+  --elevation-sm: 0 1px 3px 0 rgb(0 0 0 / 0.36), 0 1px 2px -1px rgb(0 0 0 / 0.30);
+  --elevation-md: 0 4px 12px -2px rgb(0 0 0 / 0.42), 0 2px 4px -2px rgb(0 0 0 / 0.30);
+  --elevation-lg: 0 12px 28px -6px rgb(0 0 0 / 0.55), 0 4px 8px -4px rgb(0 0 0 / 0.36);
+
+  --sidebar: #16140F;
+  --sidebar-foreground: #F2EEE6;
+  --sidebar-primary: #C9A46A;
+  --sidebar-primary-foreground: #16140F;
+  --sidebar-accent: #201D18;
+  --sidebar-accent-foreground: #F2EEE6;
+  --sidebar-border: #2E2A23;
+  --sidebar-ring: #C9A46A;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground font-sans;
+    /* Slightly open body tracking and a generous measure do more for perceived
+       quality than any amount of colour. */
+    letter-spacing: 0.006em;
+    line-height: 1.6;
   }
+
+  /* The display serif carries the brand. Tightening it at large sizes is what
+     separates an editorial heading from a default one. */
   h1, h2, h3 {
     @apply font-display;
+    letter-spacing: -0.018em;
+    line-height: 1.18;
+  }
+
+  h1 {
+    letter-spacing: -0.024em;
+  }
+
+  /* Numbers should never jitter as they update — occupancy counts, durations,
+     the desk clock. */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* A single, consistent focus treatment everywhere. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--gold) 24%, transparent);
+  }
+
+  /* Quieter scrollbars — the default chrome is the loudest thing on a calm page. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
   }
 }

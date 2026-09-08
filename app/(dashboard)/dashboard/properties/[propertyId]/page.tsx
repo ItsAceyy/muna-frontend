@@ -43,7 +43,7 @@ function OccupancyRing({ rate }: { rate: number }) {
         cy="44"
         r={radius}
         fill="none"
-        stroke="rgba(241,236,225,0.15)"
+        stroke="color-mix(in srgb, var(--canvas) 15%, transparent)"
         strokeWidth="7"
       />
       <circle
@@ -51,7 +51,7 @@ function OccupancyRing({ rate }: { rate: number }) {
         cy="44"
         r={radius}
         fill="none"
-        stroke="#B8935A"
+        stroke="var(--gold)"
         strokeWidth="7"
         strokeLinecap="round"
         strokeDasharray={circumference}

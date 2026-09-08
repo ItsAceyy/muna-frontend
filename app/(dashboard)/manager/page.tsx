@@ -7,18 +7,18 @@ import { OccupancyRate, WorkOrder } from "@/lib/types";
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-white rounded-xl border border-black/[0.06] shadow-sm p-5">
-      <p className="text-xs text-black/50 mb-2">{label}</p>
-      <p className="text-2xl font-semibold text-black">{value}</p>
+    <div className="bg-card rounded-xl border border-border shadow-sm p-5">
+      <p className="text-xs text-muted-foreground mb-2">{label}</p>
+      <p className="text-2xl font-semibold text-foreground">{value}</p>
     </div>
   );
 }
 
 function QuickAction({ label, href }: { label: string; href: string }) {
   return (
-    <a href={href} className="flex items-center justify-between px-4 py-3 rounded-lg border border-black/[0.06] hover:border-amber-400/40 hover:bg-amber-50/40 transition-colors">
-      <span className="text-sm font-medium text-black/80">{label}</span>
-      <span className="text-black/30">{"->"}</span>
+    <a href={href} className="flex items-center justify-between px-4 py-3 rounded-lg border border-border hover:border-gold/40 hover:bg-gold/[0.06] transition-colors">
+      <span className="text-sm font-medium text-foreground">{label}</span>
+      <span className="text-faint">{"->"}</span>
     </a>
   );
 }
@@ -56,13 +56,13 @@ export default function ManagerHomePage() {
   }, [propertyId, loadOccupancy, loadTickets]);
 
   if (loading) {
-    return <div className="min-h-screen bg-white" />;
+    return <div className="min-h-screen bg-card" />;
   }
 
   if (loadError) {
     return (
       <div className="flex min-h-screen items-center justify-center px-4">
-        <p className="text-sm text-red-500">{loadError}</p>
+        <p className="text-sm text-rust">{loadError}</p>
       </div>
     );
   }
@@ -97,25 +97,25 @@ export default function ManagerHomePage() {
   });
 
   const statusRows = [
-    { label: "Open", value: openCount, color: "bg-amber-400" },
-    { label: "In Progress", value: inProgressCount, color: "bg-amber-500" },
-    { label: "Pending Parts", value: pendingPartsCount, color: "bg-red-400" },
-    { label: "Resolved", value: resolvedCount, color: "bg-emerald-500" },
+    { label: "Open", value: openCount, color: "bg-gold" },
+    { label: "In Progress", value: inProgressCount, color: "bg-gold" },
+    { label: "Pending Parts", value: pendingPartsCount, color: "bg-rust" },
+    { label: "Resolved", value: resolvedCount, color: "bg-sage" },
   ];
 
   return (
-    <div className="bg-[#faf9f7] min-h-full">
+    <div className="bg-canvas min-h-full">
       <div className="px-8 py-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-black">Dashboard</h1>
-        <button className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium transition-colors">
+        <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
+        <button className="px-4 py-2 rounded-lg bg-ink hover:opacity-90 text-primary-foreground text-sm font-medium transition-colors">
           + New Request
         </button>
       </div>
 
       <div className="px-8 pb-10 space-y-8">
-        <div className="bg-white rounded-xl border border-black/[0.06] shadow-sm p-6">
-          <p className="text-lg font-semibold text-black">Good day</p>
-          <p className="text-sm text-black/50 mt-1">{today}</p>
+        <div className="bg-card rounded-xl border border-border shadow-sm p-6">
+          <p className="text-lg font-semibold text-foreground">Good day</p>
+          <p className="text-sm text-muted-foreground mt-1">{today}</p>
         </div>
 
         <div className="grid grid-cols-4 gap-4">
@@ -126,29 +126,29 @@ export default function ManagerHomePage() {
         </div>
 
         <div className="grid grid-cols-3 gap-6">
-          <div className="col-span-2 bg-white rounded-xl border border-black/[0.06] shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-black mb-4">Recent Activity</h2>
+          <div className="col-span-2 bg-card rounded-xl border border-border shadow-sm p-6">
+            <h2 className="text-sm font-semibold text-foreground mb-4">Recent Activity</h2>
 
-            {ticketsError && <p className="text-sm text-red-500">{ticketsError}</p>}
+            {ticketsError && <p className="text-sm text-rust">{ticketsError}</p>}
 
             {!ticketsError && !tickets && (
               <div className="space-y-3 animate-pulse">
-                <div className="h-10 bg-black/5 rounded-lg" />
-                <div className="h-10 bg-black/5 rounded-lg" />
-                <div className="h-10 bg-black/5 rounded-lg" />
+                <div className="h-10 bg-muted rounded-lg" />
+                <div className="h-10 bg-muted rounded-lg" />
+                <div className="h-10 bg-muted rounded-lg" />
               </div>
             )}
 
             {!ticketsError && tickets && tickets.length === 0 && (
-              <p className="text-sm text-black/40">No recent activity.</p>
+              <p className="text-sm text-faint">No recent activity.</p>
             )}
 
             {!ticketsError && tickets && tickets.length > 0 && (
-              <div className="divide-y divide-black/[0.06]">
+              <div className="divide-y divide-border">
                 {tickets.slice(0, 5).map((t) => (
                   <div key={t.id} className="flex items-center justify-between py-3">
-                    <span className="text-sm text-black/80">{t.title}</span>
-                    <span className="text-xs text-black/40 capitalize">
+                    <span className="text-sm text-foreground">{t.title}</span>
+                    <span className="text-xs text-faint capitalize">
                       {t.status.replace("_", " ")}
                     </span>
                   </div>
@@ -157,8 +157,8 @@ export default function ManagerHomePage() {
             )}
           </div>
 
-          <div className="bg-white rounded-xl border border-black/[0.06] shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-black mb-4">Quick Actions</h2>
+          <div className="bg-card rounded-xl border border-border shadow-sm p-6">
+            <h2 className="text-sm font-semibold text-foreground mb-4">Quick Actions</h2>
             <div className="space-y-2">
               <QuickAction label="Invite Guard" href="/manager/staff" />
               <QuickAction label="View Maintenance" href="/manager/maintenance" />
@@ -167,23 +167,23 @@ export default function ManagerHomePage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-black/[0.06] shadow-sm p-6">
-          <h2 className="text-sm font-semibold text-black mb-4">Maintenance Overview</h2>
+        <div className="bg-card rounded-xl border border-border shadow-sm p-6">
+          <h2 className="text-sm font-semibold text-foreground mb-4">Maintenance Overview</h2>
 
-          {!tickets && <div className="h-24 bg-black/5 rounded-lg animate-pulse" />}
+          {!tickets && <div className="h-24 bg-muted rounded-lg animate-pulse" />}
 
           {tickets && (
             <div className="space-y-3">
               {statusRows.map((row) => (
                 <div key={row.label} className="flex items-center gap-3">
-                  <span className="text-xs text-black/50 w-28 shrink-0">{row.label}</span>
-                  <div className="flex-1 h-2.5 rounded-full bg-black/5 overflow-hidden">
+                  <span className="text-xs text-muted-foreground w-28 shrink-0">{row.label}</span>
+                  <div className="flex-1 h-2.5 rounded-full bg-muted overflow-hidden">
                     <div
                       className={"h-full rounded-full " + row.color}
                       style={{ width: (row.value / maxStatus) * 100 + "%" }}
                     />
                   </div>
-                  <span className="text-xs font-medium text-black/70 w-6 text-right">
+                  <span className="text-xs font-medium text-foreground/70 w-6 text-right">
                     {row.value}
                   </span>
                 </div>
