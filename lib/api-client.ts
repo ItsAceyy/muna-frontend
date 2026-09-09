@@ -2,17 +2,18 @@
 // the hosting dashboard after a deploy changes nothing until a rebuild. When it is
 // missing the template below produces "undefined/auth/login", which resolves
 // against the app's own origin and returns a 404 that points nowhere near the cause.
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// The deployed backend. Not a secret - every request from the browser carries it
+// anyway - and having a real default means a build that forgot the environment
+// variable still works, rather than sending every request to "undefined/auth/login"
+// and returning a 404 that points nowhere near the cause.
+const DEFAULT_API_URL = "https://muna-vms-staging.onrender.com";
+
+// NEXT_PUBLIC_* is inlined at build time, not read at runtime, so this is fixed
+// when the bundle is built. Local development overrides it in .env.local; the
+// default carries production.
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL).replace(/\/+$/, "");
 
 function requireApiUrl(): string {
-  if (!API_URL) {
-    throw new ApiError(
-      0,
-      "The app is not configured to reach its server. NEXT_PUBLIC_API_URL was " +
-        "missing when this build was created - set it and redeploy without the " +
-        "build cache."
-    );
-  }
   return API_URL;
 }
 
