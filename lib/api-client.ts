@@ -134,11 +134,21 @@ export async function apiFetch<T>(
   });
 
   if (res.status === 401) {
-    clearToken();
-    if (typeof window !== "undefined") {
-      window.location.href = "/login";
+    // A 401 means two different things, and treating them alike broke sign-in.
+    //
+    // With a token, the session has expired: clear it and send the user to sign in
+    // again. Without one, this IS the sign-in attempt - the password was wrong -
+    // and redirecting to /login reloads the page, wiping the error message after
+    // about half a second. So it reads as a flash of red and then nothing.
+    if (token) {
+      clearToken();
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
+      throw new ApiError(401, "Your session expired. Please sign in again.");
     }
-    throw new ApiError(401, "Session expired");
+
+    // Fall through so the server's own message is read and shown, and stays put.
   }
 
   if (!res.ok) {
