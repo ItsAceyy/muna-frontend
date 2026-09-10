@@ -28,9 +28,13 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      const access = await getMyAccess();
+
+      // These two do not depend on each other, and each is a round trip to a
+      // server that may be waking up. Awaiting them in sequence added a whole
+      // extra trip to how long sign-in appears to take.
       // A super admin has no property role, so the flag decides where they land.
-      const me = await getCurrentUser();
+      const [access, me] = await Promise.all([getMyAccess(), getCurrentUser()]);
+
       router.push(decideRedirectPath(access, me.is_platform_admin));
     } catch (err) {
       if (err instanceof ApiError) {
