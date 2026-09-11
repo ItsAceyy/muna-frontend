@@ -2,62 +2,54 @@
 
 import { useState } from "react";
 import Modal from "./Modal";
-import { apiFetch, ApiError } from "@/lib/api-client";
-import { Unit, UnitType } from "@/lib/types";
+import { ApiError } from "@/lib/api-client";
+import { UnitTypeDef } from "@/lib/types";
+import { commitUnits } from "@/lib/unit-types";
+import { inputClass, labelClass, primaryButton, secondaryButton } from "./setup-styles";
 
 interface NewUnitModalProps {
   propertyId: string;
+  /** The organization's active unit types. */
+  types: UnitTypeDef[];
   onClose: () => void;
   onCreated: () => void;
 }
 
-const UNIT_TYPES: { value: UnitType; label: string }[] = [
-  { value: "studio", label: "Studio" },
-  { value: "1br", label: "1 Bedroom" },
-  { value: "2br", label: "2 Bedroom" },
-  { value: "3br", label: "3 Bedroom" },
-  { value: "office", label: "Office" },
-  { value: "retail", label: "Retail" },
-  { value: "other", label: "Other" },
-];
-
-export default function NewUnitModal({
-  propertyId,
-  onClose,
-  onCreated,
-}: NewUnitModalProps) {
+/** One unit at a time, for corrections and the unit the generator missed. Saved
+ *  through the same path as a generated batch - a batch of one. */
+export default function NewUnitModal({ propertyId, types, onClose, onCreated }: NewUnitModalProps) {
   const [unitNumber, setUnitNumber] = useState("");
+  const [typeId, setTypeId] = useState(types[0]?.id ?? "");
+  const [block, setBlock] = useState("");
   const [floor, setFloor] = useState("");
-  const [unitType, setUnitType] = useState<UnitType>("studio");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
-
-    if (!unitNumber.trim()) {
-      setError("Unit number is required");
+    const number = unitNumber.trim();
+    if (!number) {
+      setError("Enter a unit number.");
       return;
     }
-
     setSubmitting(true);
+    setError(null);
     try {
-      await apiFetch<Unit>(`/properties/${propertyId}/units`, {
-        method: "POST",
-        body: JSON.stringify({
-          unit_number: unitNumber.trim(),
-          floor: floor.trim() || undefined,
-          unit_type: unitType,
-        }),
-      });
+      await commitUnits(propertyId, [
+        {
+          unit_number: number,
+          unit_type_id: typeId,
+          block: block.trim() || null,
+          floor: floor.trim() || null,
+        },
+      ]);
       onCreated();
       onClose();
     } catch (err) {
-      if (err instanceof ApiError && err.status === 409) {
-        setError("A unit with that number already exists on this property");
+      if (err instanceof ApiError && err.status === 409 && err.message.startsWith("Already exist")) {
+        setError(`Unit ${number} already exists on this property.`);
       } else {
-        setError(err instanceof Error ? err.message : "Failed to create unit");
+        setError(err instanceof Error ? err.message : "Could not add the unit");
       }
     } finally {
       setSubmitting(false);
@@ -65,60 +57,77 @@ export default function NewUnitModal({
   }
 
   return (
-    <Modal title="New Unit" onClose={onClose}>
+    <Modal title="Add a unit" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
+          <label htmlFor="unit-number" className={labelClass}>
             Unit number
           </label>
           <input
-            type="text"
+            id="unit-number"
             value={unitNumber}
             onChange={(e) => setUnitNumber(e.target.value)}
-            className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold transition-all duration-150"
-            placeholder="e.g. 4B"
+            placeholder="e.g. A101"
+            className={`${inputClass} w-full`}
+            autoFocus
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
-            Floor <span className="text-muted-foreground font-normal">(optional)</span>
-          </label>
-          <input
-            type="text"
-            value={floor}
-            onChange={(e) => setFloor(e.target.value)}
-            className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold transition-all duration-150"
-            placeholder="e.g. 4"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
-            Unit type
+          <label htmlFor="unit-type" className={labelClass}>
+            Type
           </label>
           <select
-            value={unitType}
-            onChange={(e) => setUnitType(e.target.value as UnitType)}
-            className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold transition-all duration-150"
+            id="unit-type"
+            value={typeId}
+            onChange={(e) => setTypeId(e.target.value)}
+            className={`${inputClass} w-full`}
           >
-            {UNIT_TYPES.map((ut) => (
-              <option key={ut.value} value={ut.value}>
-                {ut.label}
+            {types.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
               </option>
             ))}
           </select>
         </div>
 
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="unit-block" className={labelClass}>
+              Block <span className="font-normal text-faint">optional</span>
+            </label>
+            <input
+              id="unit-block"
+              value={block}
+              onChange={(e) => setBlock(e.target.value)}
+              placeholder="e.g. A"
+              className={`${inputClass} w-full`}
+            />
+          </div>
+          <div>
+            <label htmlFor="unit-floor" className={labelClass}>
+              Floor <span className="font-normal text-faint">optional</span>
+            </label>
+            <input
+              id="unit-floor"
+              value={floor}
+              onChange={(e) => setFloor(e.target.value)}
+              placeholder="e.g. 1"
+              className={`${inputClass} w-full`}
+            />
+          </div>
+        </div>
+
         {error && <p className="text-sm text-rust">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full bg-gold text-ink rounded-md py-2 text-sm font-medium hover:brightness-110 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:hover:scale-100 transition-all duration-150"
-        >
-          {submitting ? "Creating..." : "Create Unit"}
-        </button>
+        <div className="flex justify-end gap-2 pt-1">
+          <button type="button" onClick={onClose} className={secondaryButton}>
+            Cancel
+          </button>
+          <button type="submit" disabled={submitting || !typeId} className={primaryButton}>
+            {submitting ? "Adding…" : "Add unit"}
+          </button>
+        </div>
       </form>
     </Modal>
   );

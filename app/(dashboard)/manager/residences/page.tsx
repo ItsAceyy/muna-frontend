@@ -5,6 +5,8 @@ import { apiFetch } from "@/lib/api-client";
 import { createInvite } from "@/lib/auth";
 import { useProperty } from "@/lib/property-context";
 import { Unit } from "@/lib/types";
+import { describeUnit } from "@/lib/unit-types";
+import UnitSetupToolbar from "@/components/UnitSetupToolbar";
 
 const STATUS_COLORS: Record<string, string> = {
   vacant: "bg-muted text-muted-foreground",
@@ -106,7 +108,12 @@ function InviteResidentForm({
 }
 
 export default function ResidencesPage() {
-  const { propertyId, loadError: accessError, loading: accessLoading } = useProperty();
+  const {
+    propertyId,
+    organizationId,
+    loadError: accessError,
+    loading: accessLoading,
+  } = useProperty();
 
   const [units, setUnits] = useState<Unit[] | null>(null);
   const [unitsError, setUnitsError] = useState<string | null>(null);
@@ -140,11 +147,21 @@ export default function ResidencesPage() {
 
   return (
     <div className="px-8 py-8 max-w-4xl">
-      <div className="mb-8">
-        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Residences</p>
-        <h1 className="text-3xl font-display font-medium text-foreground">
-          Units {units ? `(${units.length})` : ""}
-        </h1>
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Residences</p>
+          <h1 className="text-3xl font-display font-medium text-foreground">
+            Units {units ? `(${units.length})` : ""}
+          </h1>
+        </div>
+        {propertyId && (
+          <UnitSetupToolbar
+            propertyId={propertyId}
+            organizationId={organizationId}
+            existingUnitNumbers={units?.map((u) => u.unit_number) ?? []}
+            onChanged={() => loadUnits(propertyId)}
+          />
+        )}
       </div>
 
       {unitsError ? (
@@ -152,7 +169,9 @@ export default function ResidencesPage() {
       ) : !units ? (
         <ListSkeleton rows={4} />
       ) : units.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No units yet.</p>
+        <p className="text-sm text-muted-foreground">
+          No units yet. Generate a whole building at once, or import the spreadsheet you already have.
+        </p>
       ) : (
         <div className="bg-card rounded-2xl divide-y divide-border/60 shadow-sm border border-border/60">
           {units.map((unit) => (
@@ -160,10 +179,7 @@ export default function ResidencesPage() {
               <div className="flex items-center justify-between px-4 py-3 hover:bg-muted/40 transition-colors duration-150">
                 <div>
                   <div className="font-medium text-sm text-foreground">{unit.unit_number}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {unit.floor ? `Floor ${unit.floor} - ` : ""}
-                    {unit.unit_type.toUpperCase()}
-                  </div>
+                  <div className="text-xs text-muted-foreground">{describeUnit(unit)}</div>
                 </div>
                 <div className="flex items-center gap-3">
                   <span

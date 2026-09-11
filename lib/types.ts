@@ -39,7 +39,12 @@ export interface Unit {
   property_id: string;
   unit_number: string;
   floor: string | null;
+  block: string | null;
+  /** Legacy enum, still returned during the transition. Prefer unit_type_name. */
   unit_type: UnitType;
+  unit_type_id: string | null;
+  unit_type_name: string | null;
+  bedrooms: number | null;
   status: UnitStatus;
   created_at: string;
 }
@@ -63,6 +68,8 @@ export interface OccupancyRateResponse {
 
 export interface UnitTypeBreakdownItem {
   unit_type: UnitType;
+  unit_type_name: string | null;
+  bedrooms: number | null;
   total_units: number;
   occupied_units: number;
   occupancy_rate: number;
@@ -371,4 +378,93 @@ export interface CurrentUser {
   full_name: string | null;
   created_at: string;
   is_platform_admin: boolean;
+}
+
+// --- Unit types and setup ---
+
+/** A unit type the organization defined itself. `name` is theirs; `bedrooms` is the
+ *  comparable fact every breakdown computes on. */
+export interface UnitTypeDef {
+  id: string;
+  organization_id: string;
+  name: string;
+  bedrooms: number;
+  bathrooms: number | null;
+  /** Decimals arrive as strings so no precision is lost on the way. */
+  size_sqm: string | null;
+  base_rent: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string | null;
+  unit_count: number;
+}
+
+export interface UnitTypeCreate {
+  name: string;
+  bedrooms: number;
+  bathrooms?: number | null;
+  sort_order?: number;
+}
+
+export type UnitTypeUpdate = Partial<UnitTypeCreate> & { is_active?: boolean };
+
+export type NumberingScheme =
+  | "floor_prefixed"
+  | "block_floor"
+  | "block_number"
+  | "sequential"
+  | "floor_letter";
+
+export interface GeneratePlanRequest {
+  scheme: NumberingScheme;
+  floors_from: number;
+  floors_to: number;
+  units_per_floor: number;
+  /** One unit type id per position on a floor; length must equal units_per_floor. */
+  layout: string[];
+  blocks?: string[];
+  start_index?: number;
+  pad?: number;
+}
+
+export interface PlannedUnit {
+  unit_number: string;
+  floor: string | null;
+  block: string | null;
+  unit_type_id: string;
+  unit_type_name: string;
+  bedrooms: number;
+  collides: boolean;
+  collision_reason: string | null;
+}
+
+export interface GeneratePlanResponse {
+  total: number;
+  creatable: number;
+  collisions: number;
+  units: PlannedUnit[];
+}
+
+export interface UnitCommitItem {
+  unit_number: string;
+  floor: string | null;
+  block: string | null;
+  unit_type_id: string;
+}
+
+export interface CsvRowPreview {
+  row_number: number;
+  unit_number: string | null;
+  floor: string | null;
+  block: string | null;
+  unit_type_name: string | null;
+  unit_type_id: string | null;
+  error: string | null;
+}
+
+export interface CsvPreviewResponse {
+  total_rows: number;
+  valid_rows: number;
+  errors: string[];
+  rows: CsvRowPreview[];
 }

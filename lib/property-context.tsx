@@ -8,6 +8,8 @@ import { FALLBACK_CONFIG, getPropertyConfig } from "@/lib/vertical";
 type PropertyContextValue = {
   propertyId: string | null;
   propertyName: string | null;
+  /** The organization that owns the property. Unit types live at this level. */
+  organizationId: string | null;
   /** The property's business-type configuration: vocabulary and feature flags. */
   config: VerticalConfig;
   /** The full response, including which modules are switched on. Null until loaded. */
@@ -19,6 +21,7 @@ type PropertyContextValue = {
 const PropertyContext = createContext<PropertyContextValue>({
   propertyId: null,
   propertyName: null,
+  organizationId: null,
   config: FALLBACK_CONFIG,
   propertyConfig: null,
   loadError: null,
@@ -39,6 +42,7 @@ export function PropertyProvider({
 }) {
   const [propertyId, setPropertyId] = useState<string | null>(null);
   const [propertyName, setPropertyName] = useState<string | null>(null);
+  const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [propertyConfig, setPropertyConfig] = useState<PropertyConfig | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,6 +65,7 @@ export function PropertyProvider({
         }
         setPropertyId(match.property_id);
         setPropertyName(match.property_name);
+        setOrganizationId(match.organization_id);
 
         // Vocabulary and feature flags for this kind of business. A failure here
         // must not block the page - the fallback config is residential wording
@@ -84,6 +89,7 @@ export function PropertyProvider({
       value={{
         propertyId,
         propertyName,
+        organizationId,
         config: propertyConfig?.config ?? FALLBACK_CONFIG,
         propertyConfig,
         loadError,

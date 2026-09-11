@@ -1,11 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api-client";
 import { Unit } from "@/lib/types";
-import NewUnitModal from "./NewUnitModal";
-import BulkGenerateUnitsModal from "./BulkGenerateUnitsModal";
-import ImportUnitsCsvModal from "./ImportUnitsCsvModal";
+import { describeUnit } from "@/lib/unit-types";
+import UnitSetupToolbar from "./UnitSetupToolbar";
 
 interface UnitsSectionProps {
   propertyId: string;
@@ -37,54 +36,40 @@ function ListSkeleton({ rows = 3 }: { rows?: number }) {
 export default function UnitsSection({ propertyId, onUnitsChanged }: UnitsSectionProps) {
   const [units, setUnits] = useState<Unit[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showNewUnit, setShowNewUnit] = useState(false);
-  const [showBulkGenerate, setShowBulkGenerate] = useState(false);
-  const [showImportCsv, setShowImportCsv] = useState(false);
 
-  const load = useCallback(async () => {
-    try {
-      const data = await apiFetch<Unit[]>(`/properties/${propertyId}/units`);
-      setUnits(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load units");
-    }
-  }, [propertyId]);
+  // Bumped after any change made through the toolbar, to re-fetch the list.
+  const [version, setVersion] = useState(0);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelled = false;
+    apiFetch<Unit[]>(`/properties/${propertyId}/units`)
+      .then((data) => {
+        if (!cancelled) setUnits(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load units");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [propertyId, version]);
 
   function handleChanged() {
-    load();
+    setVersion((v) => v + 1);
     onUnitsChanged?.();
   }
 
   return (
     <section className="mb-8">
-      <div className="flex items-center justify-between mb-3">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
           Units {units ? `(${units.length})` : ""}
         </h2>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setShowImportCsv(true)}
-            className="text-xs font-medium text-foreground bg-muted hover:bg-muted/70 px-2.5 py-1.5 rounded-md transition-all duration-150"
-          >
-            Import CSV
-          </button>
-          <button
-            onClick={() => setShowBulkGenerate(true)}
-            className="text-xs font-medium text-foreground bg-muted hover:bg-muted/70 px-2.5 py-1.5 rounded-md transition-all duration-150"
-          >
-            Bulk Generate
-          </button>
-          <button
-            onClick={() => setShowNewUnit(true)}
-            className="text-xs font-medium text-ink bg-gold hover:brightness-110 hover:scale-[1.03] active:scale-[0.97] px-2.5 py-1.5 rounded-md transition-all duration-150"
-          >
-            + Add Unit
-          </button>
-        </div>
+        <UnitSetupToolbar
+          propertyId={propertyId}
+          existingUnitNumbers={units?.map((u) => u.unit_number) ?? []}
+          onChanged={handleChanged}
+        />
       </div>
 
       {error ? (
@@ -92,7 +77,9 @@ export default function UnitsSection({ propertyId, onUnitsChanged }: UnitsSectio
       ) : !units ? (
         <ListSkeleton rows={3} />
       ) : units.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No units yet.</p>
+        <p className="text-sm text-muted-foreground">
+          No units yet. Generate a whole building at once, or import the spreadsheet you already have.
+        </p>
       ) : (
         <div className="bg-card rounded-2xl divide-y divide-border/60 shadow-sm border border-border/60">
           {units.map((unit) => (
@@ -102,10 +89,7 @@ export default function UnitsSection({ propertyId, onUnitsChanged }: UnitsSectio
             >
               <div>
                 <div className="font-medium text-sm text-foreground">{unit.unit_number}</div>
-                <div className="text-xs text-muted-foreground">
-                  {unit.floor ? `Floor ${unit.floor} - ` : ""}
-                  {unit.unit_type.toUpperCase()}
-                </div>
+                <div className="text-xs text-muted-foreground">{describeUnit(unit)}</div>
               </div>
               <span
                 className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${
@@ -117,28 +101,6 @@ export default function UnitsSection({ propertyId, onUnitsChanged }: UnitsSectio
             </div>
           ))}
         </div>
-      )}
-
-      {showNewUnit && (
-        <NewUnitModal
-          propertyId={propertyId}
-          onClose={() => setShowNewUnit(false)}
-          onCreated={handleChanged}
-        />
-      )}
-      {showBulkGenerate && (
-        <BulkGenerateUnitsModal
-          propertyId={propertyId}
-          onClose={() => setShowBulkGenerate(false)}
-          onCreated={handleChanged}
-        />
-      )}
-      {showImportCsv && (
-        <ImportUnitsCsvModal
-          propertyId={propertyId}
-          onClose={() => setShowImportCsv(false)}
-          onCreated={handleChanged}
-        />
       )}
     </section>
   );

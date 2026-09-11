@@ -12,6 +12,7 @@ import {
 import TeamSection from "@/components/TeamSection";
 import StaffSection from "@/components/StaffSection";
 import UnitsSection from "@/components/UnitsSection";
+import { legacyUnitTypeLabel } from "@/lib/unit-types";
 import { Skeleton } from "@/components/ui/skeleton";
 
 
@@ -215,10 +216,12 @@ export default function PropertyDetailPage() {
           <div className="bg-card rounded-2xl divide-y divide-border/60 shadow-sm border border-border/60">
             {byType.breakdown.map((item) => (
               <div
-                key={item.unit_type}
+                key={item.unit_type_name ?? item.unit_type}
                 className="flex items-center justify-between px-4 py-3 hover:bg-muted/40 transition-colors duration-150"
               >
-                <span className="text-sm font-medium uppercase text-foreground">{item.unit_type}</span>
+                <span className="text-sm font-medium text-foreground">
+                  {item.unit_type_name ?? legacyUnitTypeLabel(item.unit_type)}
+                </span>
                 <span className="text-sm text-muted-foreground">
                   {item.occupied_units}/{item.total_units} occupied (
                   {(item.occupancy_rate * 100).toFixed(0)}%)
