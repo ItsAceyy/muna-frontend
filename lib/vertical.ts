@@ -31,3 +31,47 @@ export function hasModule(config: PropertyConfig | null, slug: string): boolean 
   if (!config) return true; // don't hide things while we're still loading
   return config.enabled_modules.includes(slug);
 }
+
+/** Shown until the business-type catalogue loads, and if the request fails. Keeps
+ *  setup usable rather than blocking on a list that rarely changes. Mirrors
+ *  BUSINESS_TYPES in the backend's verticals.py. */
+export const FALLBACK_BUSINESS_TYPES: BusinessTypeOption[] = [
+  {
+    key: "apartment",
+    label: "Apartment building",
+    description: "A single building of flats with shared entrances.",
+    property_type: "apartment",
+    vertical: "residential",
+  },
+  {
+    key: "estate",
+    label: "Residential estate",
+    description: "Gated housing with multiple homes and controlled access.",
+    property_type: "residential_estate",
+    vertical: "residential",
+  },
+  {
+    key: "office",
+    label: "Office",
+    description: "Offices and business parks with reception-managed visitors.",
+    property_type: "office_park",
+    vertical: "office",
+  },
+  {
+    key: "hotel",
+    label: "Hotel",
+    description: "Front-desk traffic and occupancy tracking. Not a booking system.",
+    property_type: "hotel",
+    vertical: "hotel",
+  },
+];
+
+/** Display names for module slugs. Mirrors ALL_MODULES in the backend's verticals.py. */
+export const MODULE_LABELS: Record<string, string> = {
+  visitor_management: "Visitor management",
+  maintenance: "Maintenance",
+  packages: "Deliveries",
+  occupancy_analytics: "Occupancy analytics",
+  activity_log: "Activity log",
+  smart_locks: "Smart locks",
+};
