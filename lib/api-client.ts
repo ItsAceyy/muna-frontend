@@ -1,7 +1,3 @@
-// NEXT_PUBLIC_* is inlined at build time, not read at runtime - so setting it in
-// the hosting dashboard after a deploy changes nothing until a rebuild. When it is
-// missing the template below produces "undefined/auth/login", which resolves
-// against the app's own origin and returns a 404 that points nowhere near the cause.
 // The deployed backend. Not a secret - every request from the browser carries it
 // anyway - and having a real default means a build that forgot the environment
 // variable still works, rather than sending every request to "undefined/auth/login"
