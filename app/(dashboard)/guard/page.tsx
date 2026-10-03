@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useProperty } from "@/lib/property-context";
 import { checkoutGuest, getGuardOccupancy } from "@/lib/guard";
 import { GuestOccupancyEntry } from "@/lib/types";
-import { formatDuration, formatTime, VisitDestination } from "./visit-display";
+import { formatDuration, formatTime, VisitDestination, VisitorAvatar } from "./visit-display";
 
 const REFRESH_MS = 30_000;
 
@@ -202,46 +202,6 @@ export default function GuardOccupancyPage() {
           ))}
         </ul>
       )}
-    </div>
-  );
-}
-
-function VisitorAvatar({
-  photoUrl,
-  name,
-}: {
-  photoUrl: string | null;
-  name: string;
-}) {
-  const [failed, setFailed] = useState(false);
-
-  // Photos come from a Supabase public bucket, which is not configured as a
-  // next/image remote pattern - a plain img is correct here.
-  if (photoUrl && !failed) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={photoUrl}
-        alt=""
-        onError={() => setFailed(true)}
-        className="w-14 h-14 rounded-xl object-cover bg-secondary shrink-0"
-      />
-    );
-  }
-
-  const initials = name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-
-  return (
-    <div
-      aria-hidden
-      className="w-14 h-14 rounded-xl bg-secondary text-muted-foreground shrink-0 flex items-center justify-center text-sm font-medium"
-    >
-      {initials || "?"}
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useProperty } from "@/lib/property-context";
 import { getGuardLogs } from "@/lib/guard";
 import { GuestLogEntry, GuestVisitStatus } from "@/lib/types";
-import { formatDateTime, formatDuration, VisitDestination } from "../visit-display";
+import { formatDateTime, formatDuration, VisitDestination, VisitorAvatar } from "../visit-display";
 
 const PAGE_SIZE = 50;
 
@@ -143,7 +143,8 @@ export default function GuardLogPage() {
                   key={entry.invite_id}
                   className="px-5 py-4 flex items-start justify-between gap-4"
                 >
-                  <div className="min-w-0">
+                  <VisitorAvatar photoUrl={entry.photo_url} name={name} size="sm" />
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-sm font-medium text-foreground truncate">
                         {name}

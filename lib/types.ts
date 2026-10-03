@@ -251,6 +251,8 @@ export interface GuestLogEntry {
   purpose: string | null;
   guest_name: string | null;
   full_name: string | null;
+  /** Short-lived signed link; null when there is no photo or it has been removed. */
+  photo_url: string | null;
   status: GuestVisitStatus;
   checked_in_at: string | null;
   checked_out_at: string | null;
