@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { createInvite, getPropertyStaff, PropertyStaffMember } from "@/lib/auth";
+import { InviteDetails } from "@/lib/types";
+import InviteOutcome from "@/components/InviteOutcome";
 import { useProperty } from "@/lib/property-context";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -11,8 +13,8 @@ const ROLE_LABELS: Record<string, string> = {
 export default function StaffPage() {
   const { propertyId, loadError: accessError, loading: accessLoading } = useProperty();
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteStatus, setInviteStatus] = useState<string | null>(null);
-  const [inviteStatusIsError, setInviteStatusIsError] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [created, setCreated] = useState<InviteDetails | null>(null);
   const [inviting, setInviting] = useState(false);
 
   const [staff, setStaff] = useState<PropertyStaffMember[]>([]);
@@ -40,15 +42,13 @@ export default function StaffPage() {
   const handleInviteGuard = async () => {
     if (!propertyId || !inviteEmail) return;
     setInviting(true);
-    setInviteStatus(null);
+    setInviteError(null);
+    setCreated(null);
     try {
-      await createInvite(propertyId, inviteEmail, "guard");
-      setInviteStatus(`Invite sent to ${inviteEmail}`);
-      setInviteStatusIsError(false);
+      setCreated(await createInvite(propertyId, inviteEmail, "guard"));
       setInviteEmail("");
     } catch (err) {
-      setInviteStatus(err instanceof Error ? err.message : "Failed to send invite");
-      setInviteStatusIsError(true);
+      setInviteError(err instanceof Error ? err.message : "Failed to send invite");
     } finally {
       setInviting(false);
     }
@@ -96,10 +96,11 @@ export default function StaffPage() {
               {inviting ? "Sending..." : "Invite Guard"}
             </button>
           </div>
-          {inviteStatus && (
-            <p className={`text-sm mt-3 ${inviteStatusIsError ? "text-rust" : "text-muted-foreground"}`}>
-              {inviteStatus}
-            </p>
+          {inviteError && <p className="text-sm mt-3 text-rust">{inviteError}</p>}
+          {created && (
+            <div className="mt-3">
+              <InviteOutcome invite={created} />
+            </div>
           )}
         </div>
       </section>
