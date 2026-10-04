@@ -251,6 +251,8 @@ export interface GuestLogEntry {
   purpose: string | null;
   guest_name: string | null;
   full_name: string | null;
+  /** Short-lived signed link; null when there is no photo or it has been removed. */
+  photo_url: string | null;
   status: GuestVisitStatus;
   checked_in_at: string | null;
   checked_out_at: string | null;
@@ -467,4 +469,22 @@ export interface CsvPreviewResponse {
   valid_rows: number;
   errors: string[];
   rows: CsvRowPreview[];
+}
+
+// --- Residents ---
+
+export interface Resident {
+  user_id: string;
+  full_name: string | null;
+  email: string;
+  phone_number: string | null;
+  since: string | null;
+}
+
+export interface MoveOutResult {
+  user_id: string;
+  unit_id: string;
+  moved_out_at: string;
+  /** When their details are erased, unless they live or work elsewhere on Muna by then. */
+  data_removed_after: string;
 }

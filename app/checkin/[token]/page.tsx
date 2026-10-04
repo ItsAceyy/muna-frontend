@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
+import { FACE_PHOTO, ID_PHOTO, shrinkImage } from "@/lib/images";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import { GuestInviteRecord, IdType } from "@/lib/types";
 
@@ -76,8 +77,12 @@ export default function GuestCheckinPage() {
       form.set("phone", phone.trim());
       form.set("id_type", idType);
       form.set("id_number", idNumber.trim());
-      form.set("face_photo", facePhoto, "face.jpg");
-      form.set("id_photo", idPhoto, "id.jpg");
+      const [face, id] = await Promise.all([
+        shrinkImage(facePhoto, FACE_PHOTO),
+        shrinkImage(idPhoto, ID_PHOTO),
+      ]);
+      form.set("face_photo", face, "face.jpg");
+      form.set("id_photo", id, "id.jpg");
       await apiFetch(`/guest-invites/${token}/checkin`, { method: "POST", body: form });
       setDone(true);
     } catch (err) {
