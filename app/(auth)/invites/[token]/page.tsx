@@ -3,7 +3,14 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Check, X } from "lucide-react";
-import { getInviteDetails, acceptInvite, getMyAccess, decideRedirectPath } from "@/lib/auth";
+import {
+  getInviteDetails,
+  acceptInvite,
+  acceptInviteWithExistingAccount,
+  getCurrentUser,
+  getMyAccess,
+  decideRedirectPath,
+} from "@/lib/auth";
 import { ApiError } from "@/lib/api-client";
 import { InviteDetails } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -88,6 +95,9 @@ export default function InviteAcceptPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitLoading, setSubmitLoading] = useState(false);
+  // Someone who already uses Muna accepts by signing in, not by creating an account.
+  const [mode, setMode] = useState<"create" | "signin">("create");
+  const [signinNotice, setSigninNotice] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadInvite() {
@@ -144,11 +154,37 @@ export default function InviteAcceptPage() {
       const access = await getMyAccess();
       router.push(decideRedirectPath(access));
     } catch (err) {
-      if (err instanceof ApiError) {
+      if (err instanceof ApiError && err.status === 409) {
+        switchToSignin("You already have a Muna account. Sign in to add this invite to it.");
+      } else if (err instanceof ApiError) {
         setSubmitError(err.message);
       } else {
         setSubmitError("Something went wrong. Please try again.");
       }
+    } finally {
+      setSubmitLoading(false);
+    }
+  }
+
+  function switchToSignin(notice: string | null) {
+    setMode("signin");
+    setSigninNotice(notice);
+    setSubmitError(null);
+    setPassword("");
+    setConfirmPassword("");
+  }
+
+  async function handleSignin(e: React.FormEvent) {
+    e.preventDefault();
+    if (!invite) return;
+    setSubmitError(null);
+    setSubmitLoading(true);
+    try {
+      await acceptInviteWithExistingAccount(token, invite.email, password);
+      const [access, me] = await Promise.all([getMyAccess(), getCurrentUser()]);
+      router.push(decideRedirectPath(access, me.is_platform_admin));
+    } catch (err) {
+      setSubmitError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
     } finally {
       setSubmitLoading(false);
     }
@@ -207,6 +243,34 @@ export default function InviteAcceptPage() {
           </p>
         </CardHeader>
         <CardContent>
+          {mode === "signin" ? (
+            <form onSubmit={handleSignin} className="space-y-4">
+              {signinNotice && <p className="text-sm text-muted-foreground">{signinNotice}</p>}
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input type="email" value={invite.email} disabled readOnly />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="signinPassword">Password</Label>
+                <PasswordInput
+                  id="signinPassword"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+              {submitError && <p className="text-sm text-rust">{submitError}</p>}
+              <Button type="submit" disabled={submitLoading || !password} className="w-full">
+                {submitLoading ? "Signing in..." : "Sign in and accept"}
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                <Link href="/forgot-password" className="hover:text-foreground underline-offset-2 hover:underline">
+                  Forgot your password?
+                </Link>
+              </p>
+            </form>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>Email</Label>
@@ -267,7 +331,18 @@ export default function InviteAcceptPage() {
             >
               {submitLoading ? "Setting up your account..." : "Accept invite"}
             </Button>
+            <p className="text-xs text-muted-foreground text-center">
+              Already use Muna?{" "}
+              <button
+                type="button"
+                onClick={() => switchToSignin(null)}
+                className="font-medium text-foreground underline-offset-2 hover:underline"
+              >
+                Sign in instead
+              </button>
+            </p>
           </form>
+          )}
         </CardContent>
       </Card>
     </div>

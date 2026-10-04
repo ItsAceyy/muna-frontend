@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api-client";
 import { createInvite } from "@/lib/auth";
 import { useProperty } from "@/lib/property-context";
-import { Unit } from "@/lib/types";
+import { InviteDetails, Unit } from "@/lib/types";
+import InviteOutcome from "@/components/InviteOutcome";
 import { describeUnit } from "@/lib/unit-types";
 import UnitSetupToolbar from "@/components/UnitSetupToolbar";
 
@@ -43,23 +44,21 @@ function InviteResidentForm({
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [sending, setSending] = useState(false);
-  const [status, setStatus] = useState<string | null>(null);
-  const [statusIsError, setStatusIsError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [created, setCreated] = useState<InviteDetails | null>(null);
 
   const handleSend = async () => {
     if (!propertyId || !email) return;
     setSending(true);
-    setStatus(null);
+    setError(null);
+    setCreated(null);
     try {
-      await createInvite(propertyId, email, "tenant", unit.id, phone || undefined);
-      setStatus(`Invite sent to ${email}`);
-      setStatusIsError(false);
+      setCreated(await createInvite(propertyId, email, "tenant", unit.id, phone || undefined));
       setEmail("");
       setPhone("");
       onSent();
     } catch (err) {
-      setStatus(err instanceof Error ? err.message : "Failed to send invite");
-      setStatusIsError(true);
+      setError(err instanceof Error ? err.message : "Failed to send invite");
     } finally {
       setSending(false);
     }
@@ -98,10 +97,11 @@ function InviteResidentForm({
           Cancel
         </button>
       </div>
-      {status && (
-        <p className={`text-sm mt-2 ${statusIsError ? "text-rust" : "text-muted-foreground"}`}>
-          {status}
-        </p>
+      {error && <p className="text-sm mt-2 text-rust">{error}</p>}
+      {created && (
+        <div className="mt-3 max-w-lg">
+          <InviteOutcome invite={created} />
+        </div>
       )}
     </div>
   );

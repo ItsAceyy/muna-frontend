@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Modal from "./Modal";
 import { apiFetch } from "@/lib/api-client";
+import { InviteDetails } from "@/lib/types";
+import InviteOutcome from "./InviteOutcome";
 
 interface InviteModalProps {
   propertyId: string;
@@ -22,7 +24,7 @@ export default function InviteModal({
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [created, setCreated] = useState<InviteDetails | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,11 +37,11 @@ export default function InviteModal({
 
     setSubmitting(true);
     try {
-      await apiFetch(`/properties/${propertyId}/invites`, {
+      const invite = await apiFetch<InviteDetails>(`/properties/${propertyId}/invites`, {
         method: "POST",
         body: JSON.stringify({ email: email.trim(), role }),
       });
-      setSuccess(true);
+      setCreated(invite);
       onInvited();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send invite");
@@ -50,11 +52,11 @@ export default function InviteModal({
 
   return (
     <Modal title={`Invite ${roleLabel}`} onClose={onClose}>
-      {success ? (
+      {created ? (
         <div className="text-sm text-foreground">
-          <p className="mb-4">
-            Invite sent to <span className="font-medium">{email}</span>.
-          </p>
+          <div className="mb-4">
+            <InviteOutcome invite={created} />
+          </div>
           <button
             onClick={onClose}
             className="w-full bg-gold text-ink rounded-md py-2 text-sm font-medium hover:brightness-110 hover:scale-[1.01] active:scale-[0.99] transition-all duration-150"
