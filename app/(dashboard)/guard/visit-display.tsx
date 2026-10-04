@@ -68,17 +68,36 @@ export function VisitDestination({
   return <>{parts.join(" · ")}</>;
 }
 
+// Photo links are signed and short-lived, and the backend issues a fresh one on
+// every refresh. A fresh link is a different URL, so the browser would download the
+// same photo again every 30 seconds. Instead the first link seen for a visit is
+// reused until shortly before it expires, and the browser serves it from cache.
+const PHOTO_LINK_REUSE_MS = 10 * 60 * 1000; // links last 15 minutes
+const photoLinks = new Map<string, { url: string; at: number }>();
+
+function stablePhotoUrl(key: string | undefined, url: string | null): string | null {
+  if (!key || !url) return url;
+  const seen = photoLinks.get(key);
+  if (seen && Date.now() - seen.at < PHOTO_LINK_REUSE_MS) return seen.url;
+  photoLinks.set(key, { url, at: Date.now() });
+  return url;
+}
+
 export function VisitorAvatar({
   photoUrl,
+  photoKey,
   name,
   size = "md",
 }: {
   photoUrl: string | null;
+  /** Identifies the visit, so its photo link can be reused across refreshes. */
+  photoKey?: string;
   name: string;
   /** md on the live console, sm in the denser visitor log. */
   size?: "sm" | "md";
 }) {
   const [failed, setFailed] = useState(false);
+  photoUrl = stablePhotoUrl(photoKey, photoUrl);
   const box = size === "sm" ? "w-10 h-10 rounded-lg text-xs" : "w-14 h-14 rounded-xl text-sm";
 
   // Photos are short-lived signed links from a private Supabase bucket, which is

@@ -162,6 +162,7 @@ export default function GuardOccupancyPage() {
             >
               <VisitorAvatar
                 photoUrl={entry.photo_url}
+                photoKey={entry.invite_id}
                 name={entry.full_name}
               />
 
