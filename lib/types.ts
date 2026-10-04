@@ -470,3 +470,37 @@ export interface CsvPreviewResponse {
   errors: string[];
   rows: CsvRowPreview[];
 }
+
+// --- Subscriptions ---
+
+export type SubscriptionStatus = "trial" | "active" | "grace" | "locked";
+
+export interface PropertySubscription {
+  property_id: string;
+  property_name: string;
+  organization_id: string;
+  status: SubscriptionStatus;
+  ends_at: string | null;
+  locks_at: string | null;
+  /** Show the warning banner: owners and managers, ending soon or in grace. */
+  warn: boolean;
+  /** The owner - the person who can arrange payment. */
+  can_renew: boolean;
+  role: "tenant" | "staff" | "manager" | "owner" | "guard";
+}
+
+export interface AdminPropertyBilling {
+  property_id: string;
+  name: string;
+  paid_until: string | null;
+  status: SubscriptionStatus;
+  locks_at: string | null;
+}
+
+export interface AdminClientBilling {
+  organization_id: string;
+  name: string;
+  approval_status: ApprovalStatus;
+  trial_ends_at: string | null;
+  properties: AdminPropertyBilling[];
+}
