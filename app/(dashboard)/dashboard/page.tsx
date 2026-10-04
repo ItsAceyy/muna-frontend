@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import { apiFetch } from "@/lib/api-client";
-import { Organization } from "@/lib/types";
+import { Organization, PropertySubscription } from "@/lib/types";
 import NewOrgModal from "@/components/NewOrgModal";
 import NewPropertyModal from "@/components/NewPropertyModal";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,6 +31,26 @@ function RolePill({ role }: { role: string }) {
       {role}
     </span>
   );
+}
+
+function day(iso: string | null) {
+  // UTC, matching how billing dates are stored: see ClientBilling.
+  return iso ? new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", timeZone: "UTC" }) : "";
+}
+
+/** One line on each property card saying where its subscription stands. Neutral
+ *  while all is well; colour only when someone needs to act. */
+function SubscriptionLine({ sub }: { sub: PropertySubscription | undefined }) {
+  if (!sub) return null;
+  const text = {
+    trial: `Free trial until ${day(sub.ends_at)}`,
+    active: `Paid until ${day(sub.ends_at)}`,
+    grace: `Payment due · stops ${day(sub.locks_at)}`,
+    locked: "Locked · subscription ended",
+  }[sub.status];
+  const tone =
+    sub.status === "grace" ? "text-gold" : sub.status === "locked" ? "text-rust" : "text-muted-foreground";
+  return <div className={`text-xs mt-2 ${tone}`}>{text}</div>;
 }
 
 function DashboardSkeleton() {
@@ -98,6 +118,16 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [showNewOrg, setShowNewOrg] = useState(false);
   const [showNewProperty, setShowNewProperty] = useState(false);
+
+  const [subs, setSubs] = useState<Record<string, PropertySubscription>>({});
+
+  useEffect(() => {
+    apiFetch<PropertySubscription[]>("/me/subscriptions")
+      .then((data) => setSubs(Object.fromEntries(data.map((x) => [x.property_id, x]))))
+      .catch(() => {
+        // The cards just go without a status line.
+      });
+  }, []);
 
   const load = useCallback(async (preserveSelection = false) => {
     try {
@@ -242,6 +272,7 @@ export default function DashboardPage() {
                       <div className="text-sm text-muted-foreground capitalize mt-1">
                         {prop.property_type.replace("_", " ")}
                       </div>
+                      <SubscriptionLine sub={subs[prop.id]} />
                     </Link>
                   ))}
                 </div>

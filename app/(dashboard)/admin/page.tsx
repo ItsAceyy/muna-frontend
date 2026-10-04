@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { getCurrentUser, logout } from "@/lib/auth";
-import { getClients, getPlatformOverview, rejectClient, verifyClient } from "@/lib/admin";
-import { ApprovalStatus, ClientSummary, PlatformOverview } from "@/lib/types";
+import { getBilling, getClients, getPlatformOverview, rejectClient, verifyClient } from "@/lib/admin";
+import { AdminClientBilling, ApprovalStatus, ClientSummary, PlatformOverview } from "@/lib/types";
+import ClientBilling from "@/components/admin/ClientBilling";
 
 const FILTERS: { value: ApprovalStatus | "all"; label: string }[] = [
   { value: "all", label: "All" },
@@ -26,6 +27,10 @@ export default function PlatformAdminPage() {
   const [filter, setFilter] = useState<ApprovalStatus | "all">("all");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [billing, setBilling] = useState<Record<string, AdminClientBilling>>({});
+  const [openBilling, setOpenBilling] = useState<string | null>(null);
+  // Trial length chosen for each client awaiting verification.
+  const [trialFor, setTrialFor] = useState<Record<string, number>>({});
 
   useEffect(() => {
     getCurrentUser()
@@ -36,12 +41,14 @@ export default function PlatformAdminPage() {
   const load = useCallback(async () => {
     if (!allowed) return;
     try {
-      const [o, c] = await Promise.all([
+      const [o, c, b] = await Promise.all([
         getPlatformOverview(),
         getClients(filter === "all" ? undefined : filter),
+        getBilling(),
       ]);
       setOverview(o);
       setClients(c);
+      setBilling(Object.fromEntries(b.map((x) => [x.organization_id, x])));
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load the client roster");
@@ -57,7 +64,7 @@ export default function PlatformAdminPage() {
     setError(null);
     try {
       if (approve) {
-        await verifyClient(client.organization_id);
+        await verifyClient(client.organization_id, trialFor[client.organization_id] ?? 1);
       } else {
         await rejectClient(client.organization_id);
       }
@@ -208,6 +215,18 @@ export default function PlatformAdminPage() {
                     <div className="flex gap-2 shrink-0">
                       {pending ? (
                         <>
+                          <select
+                            value={trialFor[c.organization_id] ?? 1}
+                            onChange={(e) =>
+                              setTrialFor((t) => ({ ...t, [c.organization_id]: Number(e.target.value) }))
+                            }
+                            aria-label={`Free trial for ${c.name}`}
+                            className="rounded-xl border border-border bg-canvas px-3 py-2.5 text-sm text-foreground"
+                          >
+                            <option value={1}>1-month trial</option>
+                            <option value={2}>2-month trial</option>
+                            <option value={3}>3-month trial</option>
+                          </select>
                           <button
                             onClick={() => decide(c, true)}
                             disabled={busy === c.organization_id}
@@ -231,9 +250,25 @@ export default function PlatformAdminPage() {
                         >
                           Verify after all
                         </button>
+                      ) : billing[c.organization_id] ? (
+                        <button
+                          onClick={() =>
+                            setOpenBilling(openBilling === c.organization_id ? null : c.organization_id)
+                          }
+                          aria-expanded={openBilling === c.organization_id}
+                          className="px-4 py-2.5 rounded-xl border border-border bg-canvas text-sm font-medium text-foreground hover:bg-secondary transition-colors"
+                        >
+                          Billing
+                        </button>
                       ) : null}
                     </div>
                   </div>
+                  {openBilling === c.organization_id && billing[c.organization_id] && (
+                    <ClientBilling
+                      billing={billing[c.organization_id]}
+                      onChanged={(next) => setBilling((b) => ({ ...b, [next.organization_id]: next }))}
+                    />
+                  )}
                 </li>
               );
             })}
@@ -241,8 +276,10 @@ export default function PlatformAdminPage() {
         )}
 
         <p className="text-xs text-muted-foreground mt-8 max-w-prose">
-          Verifying a client lets them add properties to their account. Muna
-          administrators see the client roster and who is asking — never what happens
+          Verifying a client lets them add properties to their account and starts
+          their free trial. After it ends, each property stays open while paid, then
+          has 7 days&apos; grace before it locks. Muna administrators see the client
+          roster, who is asking and what each property has paid — never what happens
           inside a client&apos;s property.
         </p>
       </div>
