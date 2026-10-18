@@ -7,6 +7,7 @@ import { useProperty } from "@/lib/property-context";
 import { Unit } from "@/lib/types";
 import { describeUnit } from "@/lib/unit-types";
 import UnitSetupToolbar from "@/components/UnitSetupToolbar";
+import UnitResidentsPanel from "@/components/UnitResidentsPanel";
 
 const STATUS_COLORS: Record<string, string> = {
   vacant: "bg-muted text-muted-foreground",
@@ -117,7 +118,10 @@ export default function ResidencesPage() {
 
   const [units, setUnits] = useState<Unit[] | null>(null);
   const [unitsError, setUnitsError] = useState<string | null>(null);
-  const [openInviteUnitId, setOpenInviteUnitId] = useState<string | null>(null);
+  // One panel open at a time, under the unit it belongs to.
+  const [openPanel, setOpenPanel] = useState<{ unitId: string; kind: "invite" | "residents" } | null>(null);
+  const togglePanel = (unitId: string, kind: "invite" | "residents") =>
+    setOpenPanel((cur) => (cur?.unitId === unitId && cur.kind === kind ? null : { unitId, kind }));
 
   const loadUnits = useCallback(async (pid: string) => {
     try {
@@ -189,20 +193,34 @@ export default function ResidencesPage() {
                   >
                     {unit.status}
                   </span>
+                  {unit.status === "occupied" && (
+                    <button
+                      onClick={() => togglePanel(unit.id, "residents")}
+                      className="text-xs font-medium px-3 py-1.5 rounded-lg border border-border/60 text-foreground hover:bg-muted/50 transition-colors"
+                    >
+                      Residents
+                    </button>
+                  )}
                   <button
-                    onClick={() =>
-                      setOpenInviteUnitId(openInviteUnitId === unit.id ? null : unit.id)
-                    }
+                    onClick={() => togglePanel(unit.id, "invite")}
                     className="text-xs font-medium px-3 py-1.5 rounded-lg border border-border/60 text-foreground hover:bg-muted/50 transition-colors"
                   >
                     Invite Resident
                   </button>
                 </div>
               </div>
-              {openInviteUnitId === unit.id && (
+              {openPanel?.unitId === unit.id && openPanel.kind === "residents" && propertyId && (
+                <UnitResidentsPanel
+                  propertyId={propertyId}
+                  unit={unit}
+                  onClose={() => setOpenPanel(null)}
+                  onChanged={() => loadUnits(propertyId)}
+                />
+              )}
+              {openPanel?.unitId === unit.id && openPanel.kind === "invite" && (
                 <InviteResidentForm
                   unit={unit}
-                  onClose={() => setOpenInviteUnitId(null)}
+                  onClose={() => setOpenPanel(null)}
                   onSent={() => {
                     if (propertyId) loadUnits(propertyId);
                   }}

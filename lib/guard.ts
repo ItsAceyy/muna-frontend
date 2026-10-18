@@ -1,4 +1,5 @@
 import { apiFetch } from "./api-client";
+import { FACE_PHOTO, ID_PHOTO, shrinkImage } from "./images";
 import {
   GuardUnit,
   GuestLogEntry,
@@ -62,7 +63,7 @@ export async function checkInWalkIn(
   const form = new FormData();
   form.set("full_name", payload.fullName);
   form.set("phone", payload.phone);
-  form.set("face_photo", payload.facePhoto, "face.jpg");
+  form.set("face_photo", await shrinkImage(payload.facePhoto, FACE_PHOTO), "face.jpg");
 
   // Only send the optional fields that are actually filled in. Sending an empty
   // string would be stored as an empty value rather than left null.
@@ -71,7 +72,7 @@ export async function checkInWalkIn(
   if (payload.purpose) form.set("purpose", payload.purpose);
   if (payload.idType) form.set("id_type", payload.idType);
   if (payload.idNumber) form.set("id_number", payload.idNumber);
-  if (payload.idPhoto) form.set("id_photo", payload.idPhoto, "id.jpg");
+  if (payload.idPhoto) form.set("id_photo", await shrinkImage(payload.idPhoto, ID_PHOTO), "id.jpg");
 
   return apiFetch<WalkInCheckinResult>(
     `/properties/${propertyId}/guard/checkins`,
