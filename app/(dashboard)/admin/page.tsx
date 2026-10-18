@@ -7,6 +7,7 @@ import { getBilling, getClients, getPlatformOverview, rejectClient, verifyClient
 import { AdminClientBilling, ApprovalStatus, ClientSummary, PlatformOverview } from "@/lib/types";
 import ClientBilling from "@/components/admin/ClientBilling";
 import ResetLinkTool from "@/components/admin/ResetLinkTool";
+import TwoFactorSetup from "@/components/admin/TwoFactorSetup";
 
 const FILTERS: { value: ApprovalStatus | "all"; label: string }[] = [
   { value: "all", label: "All" },
@@ -33,9 +34,17 @@ export default function PlatformAdminPage() {
   // Trial length chosen for each client awaiting verification.
   const [trialFor, setTrialFor] = useState<Record<string, number>>({});
 
+  // Admin powers need a two-factor session: until then the page offers setup.
+  const [needsTwoFactor, setNeedsTwoFactor] = useState(false);
+  const [email, setEmail] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
+
   useEffect(() => {
     getCurrentUser()
-      .then((me) => setAllowed(me.is_platform_admin))
+      .then((me) => {
+        setEmail(me.email);
+        setAllowed(me.is_platform_admin);
+      })
       .catch(() => setAllowed(false));
   }, []);
 
@@ -50,11 +59,18 @@ export default function PlatformAdminPage() {
       setOverview(o);
       setClients(c);
       setBilling(Object.fromEntries(b.map((x) => [x.organization_id, x])));
+      setNeedsTwoFactor(false);
       setError(null);
     } catch (err) {
+      if (err instanceof Error && /two-factor/i.test(err.message)) {
+        setNeedsTwoFactor(true);
+        return;
+      }
       setError(err instanceof Error ? err.message : "Failed to load the client roster");
     }
-  }, [allowed, filter]);
+    // reloadKey is bumped once two-factor is on, to load again with the new session.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allowed, filter, reloadKey]);
 
   useEffect(() => {
     load();
@@ -94,6 +110,17 @@ export default function PlatformAdminPage() {
           <p className="text-sm text-muted-foreground">
             The platform area is limited to Muna administrators.
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (needsTwoFactor) {
+    return (
+      <div className="min-h-screen bg-canvas">
+        <div className="max-w-2xl mx-auto px-6 py-12">
+          <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-4">Muna · Platform</p>
+          <TwoFactorSetup email={email} onDone={() => setReloadKey((k) => k + 1)} />
         </div>
       </div>
     );
