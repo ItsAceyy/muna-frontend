@@ -173,6 +173,8 @@ export interface InviteDetails {
   created_at: string;
   property_name: string | null;
   organization_name: string | null;
+  /** Only on a just-created invite: whether the email actually went out. */
+  email_sent?: boolean | null;
 }
 
 export interface InviteAcceptRequest {

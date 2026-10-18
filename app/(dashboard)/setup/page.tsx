@@ -5,10 +5,11 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Check } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
-import { Organization, PropertyConfig, PropertyResponse, Unit } from "@/lib/types";
+import { InviteDetails, Organization, PropertyConfig, PropertyResponse, Unit } from "@/lib/types";
 import { getPropertyConfig, MODULE_LABELS } from "@/lib/vertical";
 import BusinessTypePicker, { useBusinessTypes } from "@/components/BusinessTypePicker";
 import UnitSetupToolbar from "@/components/UnitSetupToolbar";
+import InviteOutcome from "@/components/InviteOutcome";
 import { inputClass, labelClass, primaryButton, quietButton, secondaryButton } from "@/components/setup-styles";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -456,8 +457,7 @@ function TeamStep({
 }) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<TeamRole>("manager");
-  const [sent, setSent] = useState<{ email: string; role: TeamRole; link: string }[]>([]);
-  const [copied, setCopied] = useState<string | null>(null);
+  const [sent, setSent] = useState<{ role: TeamRole; invite: InviteDetails }[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -471,13 +471,11 @@ function TeamStep({
     }
     setSubmitting(true);
     try {
-      const invite = await apiFetch<{ token: string }>(`/properties/${propertyId}/invites`, {
+      const invite = await apiFetch<InviteDetails>(`/properties/${propertyId}/invites`, {
         method: "POST",
         body: JSON.stringify({ email: address, role }),
       });
-      // Invites are not emailed yet, so the owner passes the link on themselves.
-      const link = `${window.location.origin}/invites/${invite.token}`;
-      setSent((prev) => [...prev, { email: address, role, link }]);
+      setSent((prev) => [...prev, { role, invite }]);
       setEmail("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send the invite");
@@ -486,22 +484,11 @@ function TeamStep({
     }
   }
 
-  async function copyLink(link: string) {
-    try {
-      await navigator.clipboard.writeText(link);
-      setCopied(link);
-      window.setTimeout(() => setCopied((c) => (c === link ? null : c)), 2000);
-    } catch {
-      // Clipboard access can be refused. The link is shown in full beside the
-      // button, so it can still be selected and copied by hand.
-    }
-  }
-
   return (
     <>
       <StepHeading
         title="Invite your team"
-        lead="Each invite creates a personal link. Send it to the person by email or message, and they use it to set their password. You can invite more people later from the property page."
+        lead="We email each person a link to set up their account. You can invite more people later from the property page."
       />
       <Panel>
         <form onSubmit={handleInvite} className="space-y-4">
@@ -545,24 +532,13 @@ function TeamStep({
 
         {sent.length > 0 && (
           <ul className="mt-5 divide-y divide-border/60 border-t border-border/60">
-            {sent.map((s) => (
-              <li key={s.link} className="space-y-2 py-3 text-sm">
+            {sent.map(({ role: r, invite }) => (
+              <li key={invite.token} className="space-y-2 py-3 text-sm">
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="truncate text-foreground">{s.email}</span>
-                  <span className="shrink-0 text-xs capitalize text-muted-foreground">{s.role}</span>
+                  <span className="truncate text-foreground">{invite.email}</span>
+                  <span className="shrink-0 text-xs capitalize text-muted-foreground">{r}</span>
                 </div>
-                <div className="flex gap-2">
-                  <input
-                    readOnly
-                    value={s.link}
-                    onFocus={(e) => e.currentTarget.select()}
-                    aria-label={`Invite link for ${s.email}`}
-                    className={`${inputClass} min-w-0 flex-1 text-xs text-muted-foreground`}
-                  />
-                  <button type="button" onClick={() => copyLink(s.link)} className={`${secondaryButton} shrink-0`}>
-                    {copied === s.link ? "Copied" : "Copy"}
-                  </button>
-                </div>
+                <InviteOutcome invite={invite} />
               </li>
             ))}
           </ul>

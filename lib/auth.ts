@@ -91,6 +91,18 @@ export async function acceptInvite(
   await login(email, password);
 }
 
+/** For someone who already has a Muna account: sign in, then add the invite's
+ *  access to that account. The backend checks it is the account the invite was
+ *  sent to. */
+export async function acceptInviteWithExistingAccount(
+  token: string,
+  email: string,
+  password: string
+): Promise<void> {
+  await login(email, password);
+  await apiFetch(`/invites/${token}/accept-existing`, { method: "POST" });
+}
+
 export async function getMyAccess(): Promise<MyAccessItem[]> {
   return apiFetch<MyAccessItem[]>("/me/access");
 }
