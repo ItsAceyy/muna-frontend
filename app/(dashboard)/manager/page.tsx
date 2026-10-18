@@ -124,6 +124,7 @@ export default function ManagerHomePage() {
           <StatCard label="Staff On Duty" value="-" />
           <StatCard label="Total Residences" value={occupancy ? String(occupancy.total_units) : "-"} />
         </div>
+        {occupancyError && <p className="text-sm text-rust">{occupancyError}</p>}
 
         <div className="grid grid-cols-3 gap-6">
           <div className="col-span-2 bg-card rounded-xl border border-border shadow-sm p-6">

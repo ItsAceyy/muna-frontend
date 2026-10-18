@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api-client";
 import { Manager } from "@/lib/types";
 import InviteModal from "./InviteModal";
@@ -16,7 +16,7 @@ export default function TeamSection({ propertyId }: TeamSectionProps) {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
 
-  async function loadManagers() {
+  const loadManagers = useCallback(async () => {
     try {
       const data = await apiFetch<Manager[]>(`/properties/${propertyId}/managers`);
       setManagers(data);
@@ -25,11 +25,11 @@ export default function TeamSection({ propertyId }: TeamSectionProps) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [propertyId]);
 
   useEffect(() => {
     loadManagers();
-  }, [propertyId]);
+  }, [loadManagers]);
 
   async function handleRemove(userId: string) {
     setRemovingId(userId);
