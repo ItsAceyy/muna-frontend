@@ -208,7 +208,28 @@ export default function DashboardPage() {
                 </button>
               </div>
               {selectedOrg.properties.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No properties yet.</p>
+                selectedOrg.approval_status === "approved" ? (
+                  <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="font-display text-lg font-medium text-foreground">Set up your first property</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        A few short steps: the kind of business, its units, and the people who run it.
+                      </p>
+                    </div>
+                    <Link
+                      href={`/setup?org=${selectedOrg.id}`}
+                      className="shrink-0 rounded-md px-3.5 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                    >
+                      Start setup
+                    </Link>
+                  </div>
+                ) : selectedOrg.approval_status === "pending_approval" ? (
+                  <p className="text-sm text-muted-foreground">
+                    Your organization is being reviewed. Once it&apos;s approved you can set up your first property here.
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No properties yet.</p>
+                )
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {selectedOrg.properties.map((prop) => (
