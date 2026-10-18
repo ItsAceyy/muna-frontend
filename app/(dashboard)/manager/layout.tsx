@@ -3,6 +3,7 @@
 import { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import SubscriptionGate from "@/components/SubscriptionGate";
 import { PropertyProvider, useProperty } from "@/lib/property-context";
 
 const NAV_ITEMS = [
@@ -83,7 +84,9 @@ export default function ManagerLayout({ children }: { children: ReactNode }) {
         <Sidebar />
         <div className="flex-1 min-w-0 flex flex-col">
           <TopBar />
-          <main className="flex-1 min-w-0">{children}</main>
+          <main className="flex-1 min-w-0">
+            <SubscriptionGate>{children}</SubscriptionGate>
+          </main>
         </div>
       </div>
     </PropertyProvider>

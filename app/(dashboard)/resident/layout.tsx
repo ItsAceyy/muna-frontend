@@ -3,6 +3,7 @@
 import { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import SubscriptionGate from "@/components/SubscriptionGate";
 import { PropertyProvider, useProperty } from "@/lib/property-context";
 import { logout } from "@/lib/auth";
 
@@ -67,7 +68,9 @@ export default function ResidentLayout({ children }: { children: ReactNode }) {
     <PropertyProvider roles={RESIDENT_ROLES}>
       <div className="min-h-screen bg-canvas flex flex-col">
         <ResidentBar />
-        <main className="flex-1 min-w-0">{children}</main>
+        <main className="flex-1 min-w-0">
+            <SubscriptionGate>{children}</SubscriptionGate>
+          </main>
       </div>
     </PropertyProvider>
   );
