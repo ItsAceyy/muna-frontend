@@ -9,6 +9,8 @@ interface LoginResponse {
 interface LoginPayload {
   email: string;
   password: string;
+  /** "Keep me signed in": a month instead of a 12-hour shift. */
+  remember_me?: boolean;
 }
 
 interface SignupPayload {
@@ -30,10 +32,10 @@ export interface PropertyStaffMember {
   created_at: string;
 }
 
-export async function login(email: string, password: string): Promise<void> {
+export async function login(email: string, password: string, rememberMe = false): Promise<void> {
   const data = await apiFetch<LoginResponse>("/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, password } satisfies LoginPayload),
+    body: JSON.stringify({ email, password, remember_me: rememberMe } satisfies LoginPayload),
   });
   setToken(data.access_token);
 }

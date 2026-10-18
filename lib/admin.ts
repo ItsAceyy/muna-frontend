@@ -38,3 +38,17 @@ export async function setPaidUntil(propertyId: string, paidUntil: string | null)
     body: JSON.stringify({ paid_until: paidUntil }),
   });
 }
+
+export interface ResetLink {
+  email: string;
+  link: string;
+  expires_in_minutes: number;
+}
+
+/** A single-use password reset link to send someone by hand. */
+export async function createResetLink(email: string): Promise<ResetLink> {
+  return apiFetch<ResetLink>("/admin/users/reset-link", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}

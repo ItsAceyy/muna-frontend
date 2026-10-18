@@ -19,6 +19,9 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  // On by default: most people sign in on their own phone or the desk's own
+  // device. Unticking it keeps the session to a 12-hour shift.
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +30,7 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      await login(email, password);
+      await login(email, password, rememberMe);
 
       // These two do not depend on each other, and each is a round trip to a
       // server that may be waking up. Awaiting them in sequence added a whole
@@ -75,6 +78,20 @@ export default function LoginPage() {
                 required
               />
             </div>
+            <label className="flex items-start gap-2.5 text-sm text-foreground cursor-pointer">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-[var(--ink)]"
+              />
+              <span>
+                Keep me signed in
+                <span className="block text-xs text-muted-foreground">
+                  Untick this on a shared or public computer.
+                </span>
+              </span>
+            </label>
             {error && <p className="text-sm text-rust">{error}</p>}
             <Button
               type="submit"
