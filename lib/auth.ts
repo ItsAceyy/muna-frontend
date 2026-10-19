@@ -1,9 +1,39 @@
-import { apiFetch, setToken, clearToken } from "./api-client";
+import { ApiError, apiFetch, setToken, clearToken } from "./api-client";
 import { CurrentUser, InviteDetails, InviteAcceptRequest, MyAccessItem } from "./types";
 
 interface LoginResponse {
-  access_token: string;
-  token_type: string;
+  access_token?: string;
+  token_type?: string;
+  trusted_device_token?: string;
+  /** Set instead of a session when the account uses two-factor sign-in. */
+  two_factor_required?: boolean;
+  challenge?: string;
+}
+
+/** What signing in produced: a session, or a request for the two-factor code. */
+export type LoginResult = { twoFactor: false } | { twoFactor: true; challenge: string };
+
+// Trusted-device tokens, one per account, so a device that passed two-factor
+// skips the code for 30 days. Not a session: on its own it signs nobody in.
+const TRUSTED_DEVICES_KEY = "muna_trusted_devices";
+
+function trustedDevices(): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem(TRUSTED_DEVICES_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function rememberTrustedDevice(email: string, token: string | undefined) {
+  if (!token) return;
+  try {
+    const all = trustedDevices();
+    all[email.trim().toLowerCase()] = token;
+    localStorage.setItem(TRUSTED_DEVICES_KEY, JSON.stringify(all));
+  } catch {
+    // Without storage the code is simply asked for each time.
+  }
 }
 
 interface LoginPayload {
@@ -11,6 +41,7 @@ interface LoginPayload {
   password: string;
   /** "Keep me signed in": a month instead of a 12-hour shift. */
   remember_me?: boolean;
+  trusted_device_token?: string;
 }
 
 interface SignupPayload {
@@ -32,12 +63,57 @@ export interface PropertyStaffMember {
   created_at: string;
 }
 
-export async function login(email: string, password: string, rememberMe = false): Promise<void> {
+export async function login(email: string, password: string, rememberMe = false): Promise<LoginResult> {
   const data = await apiFetch<LoginResponse>("/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, password, remember_me: rememberMe } satisfies LoginPayload),
+    body: JSON.stringify({
+      email,
+      password,
+      remember_me: rememberMe,
+      trusted_device_token: trustedDevices()[email.trim().toLowerCase()],
+    } satisfies LoginPayload),
   });
-  setToken(data.access_token);
+  if (data.two_factor_required && data.challenge) {
+    return { twoFactor: true, challenge: data.challenge };
+  }
+  setToken(data.access_token!);
+  return { twoFactor: false };
+}
+
+/** The second step of signing in: the code from the authenticator app. */
+export async function verifyTwoFactor(
+  email: string,
+  challenge: string,
+  code: string,
+  trustDevice: boolean
+): Promise<void> {
+  const data = await apiFetch<LoginResponse>("/auth/2fa/verify", {
+    method: "POST",
+    body: JSON.stringify({ challenge, code, trust_device: trustDevice }),
+  });
+  setToken(data.access_token!);
+  rememberTrustedDevice(email, data.trusted_device_token);
+}
+
+export interface TwoFactorSetup {
+  secret: string;
+  otpauth_uri: string;
+}
+
+/** Start two-factor setup: a secret for the authenticator app. */
+export async function startTwoFactorSetup(): Promise<TwoFactorSetup> {
+  return apiFetch<TwoFactorSetup>("/auth/2fa/setup", { method: "POST" });
+}
+
+/** Confirm setup with the first code. Swaps in a two-factor session and trusts
+ *  this device, so the admin page works straight away. */
+export async function enableTwoFactor(email: string, code: string): Promise<void> {
+  const data = await apiFetch<LoginResponse>("/auth/2fa/enable", {
+    method: "POST",
+    body: JSON.stringify({ code }),
+  });
+  setToken(data.access_token!);
+  rememberTrustedDevice(email, data.trusted_device_token);
 }
 
 export async function signup(
@@ -101,7 +177,13 @@ export async function acceptInviteWithExistingAccount(
   email: string,
   password: string
 ): Promise<void> {
-  await login(email, password);
+  const result = await login(email, password);
+  if (result.twoFactor) {
+    throw new ApiError(
+      401,
+      "Your account uses two-factor sign-in. Sign in on the login page first, then open this invite link again."
+    );
+  }
   await apiFetch(`/invites/${token}/accept-existing`, { method: "POST" });
 }
 
