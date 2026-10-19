@@ -6,6 +6,7 @@ import { getCurrentUser, logout } from "@/lib/auth";
 import { getBilling, getClients, getPlatformOverview, rejectClient, verifyClient } from "@/lib/admin";
 import { AdminClientBilling, ApprovalStatus, ClientSummary, PlatformOverview } from "@/lib/types";
 import ClientBilling from "@/components/admin/ClientBilling";
+import ResetLinkTool from "@/components/admin/ResetLinkTool";
 
 const FILTERS: { value: ApprovalStatus | "all"; label: string }[] = [
   { value: "all", label: "All" },
@@ -274,6 +275,8 @@ export default function PlatformAdminPage() {
             })}
           </ul>
         )}
+
+        <ResetLinkTool />
 
         <p className="text-xs text-muted-foreground mt-8 max-w-prose">
           Verifying a client lets them add properties to their account and starts
