@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api-client";
-import { MoveOutResult, Resident, Unit } from "@/lib/types";
+import { MoveOutResult, Resident, ResidentResetLink, Unit } from "@/lib/types";
 import { primaryButton, quietButton, secondaryButton } from "./setup-styles";
 
 interface UnitResidentsPanelProps {
@@ -17,7 +17,18 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 }
 
-/** Who lives in a unit, and moving one of them out.
+/** A WhatsApp link that opens a chat with the message ready. Kenyan numbers
+ *  stored as 07.../01... are turned into 2547.../2541...; anything else opens
+ *  WhatsApp to pick the contact. */
+function whatsappLink(phone: string | null, message: string) {
+  let digits = (phone || "").replace(/\D/g, "");
+  if (/^0[17]\d{8}$/.test(digits)) digits = `254${digits.slice(1)}`;
+  const to = /^\d{10,15}$/.test(digits) ? digits : "";
+  return `https://wa.me/${to}?text=${encodeURIComponent(message)}`;
+}
+
+/** Who lives in a unit, moving one of them out, and a way back in for a resident
+ *  who forgot their password.
  *
  *  A move-out is an ordinary part of running a building, so it is styled as one:
  *  neutral, with a confirmation that says plainly what happens rather than a red
@@ -29,6 +40,9 @@ export default function UnitResidentsPanel({ propertyId, unit, onClose, onChange
   const [confirming, setConfirming] = useState<string | null>(null);
   const [moving, setMoving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [resetting, setResetting] = useState<string | null>(null);
+  const [resetLink, setResetLink] = useState<ResidentResetLink | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,12 +69,42 @@ export default function UnitResidentsPanel({ propertyId, unit, onClose, onChange
       const who = resident.full_name || resident.email;
       setNotice(`${who} has moved out. Their details will be deleted on ${formatDate(result.data_removed_after)}.`);
       setConfirming(null);
+      setResetLink(null);
       setVersion((v) => v + 1);
       onChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to record the move-out");
     } finally {
       setMoving(false);
+    }
+  }
+
+  async function makeResetLink(resident: Resident) {
+    setResetting(resident.user_id);
+    setError(null);
+    setResetLink(null);
+    setCopied(false);
+    try {
+      setResetLink(
+        await apiFetch<ResidentResetLink>(
+          `/properties/${propertyId}/units/${unit.id}/residents/${resident.user_id}/reset-link`,
+          { method: "POST" }
+        )
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not create a reset link");
+    } finally {
+      setResetting(null);
+    }
+  }
+
+  async function copy(link: string) {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // The link is on screen to copy by hand.
     }
   }
 
@@ -84,6 +128,7 @@ export default function UnitResidentsPanel({ propertyId, unit, onClose, onChange
             const details = [r.full_name ? r.email : null, r.since ? `Since ${formatDate(r.since)}` : null]
               .filter(Boolean)
               .join(" · ");
+            const link = resetLink?.user_id === r.user_id ? resetLink : null;
             return (
               <li key={r.user_id} className="rounded-xl border border-border/60 bg-card px-4 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -92,11 +137,53 @@ export default function UnitResidentsPanel({ propertyId, unit, onClose, onChange
                     {details && <div className="text-xs text-muted-foreground truncate">{details}</div>}
                   </div>
                   {confirming !== r.user_id && (
-                    <button type="button" onClick={() => setConfirming(r.user_id)} className={secondaryButton}>
-                      Move out
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => makeResetLink(r)}
+                        disabled={resetting === r.user_id}
+                        className={quietButton}
+                      >
+                        {resetting === r.user_id ? "Creating..." : "Reset password"}
+                      </button>
+                      <button type="button" onClick={() => setConfirming(r.user_id)} className={secondaryButton}>
+                        Move out
+                      </button>
+                    </div>
                   )}
                 </div>
+
+                {link && (
+                  <div role="status" className="mt-3 border-t border-border/60 pt-3 space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      Send this to {name} yourself, once you&apos;re sure it&apos;s them. It sets a new password, works
+                      once, and expires in {link.expires_in_minutes} minutes.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <input
+                        readOnly
+                        value={link.link}
+                        onFocus={(e) => e.currentTarget.select()}
+                        aria-label={`Password reset link for ${name}`}
+                        className="min-w-0 flex-1 rounded-xl border border-border bg-canvas px-3 py-2 text-xs text-muted-foreground"
+                      />
+                      <button type="button" onClick={() => copy(link.link)} className={secondaryButton}>
+                        {copied ? "Copied" : "Copy"}
+                      </button>
+                      <a
+                        href={whatsappLink(
+                          r.phone_number,
+                          `Hi ${r.full_name || ""}, here is your link to set a new Muna password. It works once and expires in ${link.expires_in_minutes} minutes: ${link.link}`
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={secondaryButton}
+                      >
+                        WhatsApp
+                      </a>
+                    </div>
+                  </div>
+                )}
 
                 {confirming === r.user_id && (
                   <div className="mt-3 border-t border-border/60 pt-3">

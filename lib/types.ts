@@ -517,6 +517,12 @@ export interface Resident {
   since: string | null;
 }
 
+export interface ResidentResetLink {
+  user_id: string;
+  link: string;
+  expires_in_minutes: number;
+}
+
 export interface MoveOutResult {
   user_id: string;
   unit_id: string;
