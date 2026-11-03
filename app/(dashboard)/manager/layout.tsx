@@ -5,17 +5,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SubscriptionGate from "@/components/SubscriptionGate";
 import { PropertyProvider, useProperty } from "@/lib/property-context";
+import { hasModule } from "@/lib/vertical";
 
-const NAV_ITEMS = [
+const NAV_ITEMS: { href: string; label: string; module?: string }[] = [
   { href: "/manager", label: "Home" },
   { href: "/manager/maintenance", label: "Maintenance" },
+  { href: "/manager/deliveries", label: "Deliveries", module: "packages" },
   { href: "/manager/staff", label: "Staff" },
   { href: "/manager/residences", label: "Residences" },
 ];
 
 function Sidebar() {
   const pathname = usePathname();
-  const { propertyName } = useProperty();
+  const { propertyName, propertyConfig } = useProperty();
 
   return (
     <aside className="w-64 shrink-0 bg-sidebar text-sidebar-foreground flex flex-col h-screen sticky top-0 border-r border-sidebar-border">
@@ -31,7 +33,7 @@ function Sidebar() {
       </div>
 
       <nav className="flex-1 px-3 py-2 space-y-0.5">
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.filter((item) => !item.module || hasModule(propertyConfig, item.module)).map((item) => {
           const isActive = pathname === item.href;
           const linkClass = isActive
             ? "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium border-l-2 bg-sidebar-accent border-sidebar-primary text-sidebar-primary"

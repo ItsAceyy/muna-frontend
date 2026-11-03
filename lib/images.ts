@@ -14,6 +14,7 @@
 
 export const FACE_PHOTO = { maxDimension: 640, quality: 0.8 };
 export const ID_PHOTO = { maxDimension: 1600, quality: 0.85 };
+export const REPAIR_PHOTO = { maxDimension: 1600, quality: 0.85 };
 
 export async function shrinkImage(
   blob: Blob,
