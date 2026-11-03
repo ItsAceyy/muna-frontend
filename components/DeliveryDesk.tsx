@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { parseApiDate } from "@/app/(dashboard)/guard/visit-display";
 import { getPropertyPackages, logPackage, markPackageCollected } from "@/lib/deliveries";
 import { useProperty } from "@/lib/property-context";
 import { Package } from "@/lib/types";
@@ -14,7 +15,7 @@ interface DeskUnit {
 }
 
 function formatWhen(iso: string) {
-  return new Date(iso).toLocaleString(undefined, {
+  return parseApiDate(iso).toLocaleString(undefined, {
     day: "numeric",
     month: "short",
     hour: "2-digit",
