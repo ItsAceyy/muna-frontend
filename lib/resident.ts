@@ -1,4 +1,5 @@
 import { apiFetch } from "./api-client";
+import { REPAIR_PHOTO, shrinkImage } from "./images";
 import {
   GuestInviteRecord,
   MyVisitorHistoryItem,
@@ -38,6 +39,12 @@ export async function raiseTicket(
     method: "POST",
     body: JSON.stringify({ title, description: description || undefined, priority }),
   });
+}
+
+export async function attachTicketPhoto(ticketId: string, photo: Blob): Promise<void> {
+  const form = new FormData();
+  form.set("file", await shrinkImage(photo, REPAIR_PHOTO), "repair.jpg");
+  await apiFetch(`/work-orders/${ticketId}/attachments`, { method: "POST", body: form });
 }
 
 export async function inviteGuest(

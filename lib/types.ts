@@ -246,6 +246,27 @@ export interface WorkOrder {
   updated_at: string;
   resolved_at: string | null;
 }
+
+export interface WorkOrderAttachment {
+  id: string;
+  uploaded_by: string;
+  photo_url: string | null;
+  created_at: string;
+}
+
+/** One ticket opened up: the same fields as the list, plus its photos. */
+export interface WorkOrderDetail extends WorkOrder {
+  attachments: WorkOrderAttachment[];
+}
+
+export interface PropertyStaffMember {
+  user_id: string;
+  email: string;
+  full_name: string | null;
+  role: string;
+  created_at: string;
+}
+
 // --- Visitors / guard console ---
 
 export type VisitType = "resident_invite" | "walk_in";

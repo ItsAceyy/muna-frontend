@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useProperty } from "@/lib/property-context";
-import { getMyTickets, getMyUnits, raiseTicket } from "@/lib/resident";
+import { attachTicketPhoto, getMyTickets, getMyUnits, raiseTicket } from "@/lib/resident";
 import { Unit, WorkOrder, WorkOrderPriority } from "@/lib/types";
 import {
   Badge,
@@ -47,6 +47,20 @@ export default function ResidentMaintenancePage() {
   const [unitId, setUnitId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const photoInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!photo) {
+      setPhotoPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(photo);
+    setPhotoPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [photo]);
 
   const load = useCallback(async () => {
     try {
@@ -70,11 +84,23 @@ export default function ResidentMaintenancePage() {
     if (!unitId || !title.trim()) return;
     setSubmitting(true);
     setFormError(null);
+    setNotice(null);
     try {
-      await raiseTicket(unitId, title.trim(), description.trim(), priority);
+      const ticket = await raiseTicket(unitId, title.trim(), description.trim(), priority);
+      if (photo) {
+        // The request is already with the manager by now. A failed photo must not
+        // read as a failed request, or the resident sends the same thing twice.
+        try {
+          await attachTicketPhoto(ticket.id, photo);
+        } catch (err) {
+          const reason = err instanceof Error ? err.message : "the upload failed";
+          setNotice(`Your request was sent, but the photo was not: ${reason}`);
+        }
+      }
       setTitle("");
       setDescription("");
       setPriority("medium");
+      setPhoto(null);
       setOpen(false);
       await load();
     } catch (err) {
@@ -106,6 +132,7 @@ export default function ResidentMaintenancePage() {
       />
 
       {error && <ErrorNote>{error}</ErrorNote>}
+      {notice && <ErrorNote>{notice}</ErrorNote>}
 
       {open && (
         <Card className="p-5 mb-5">
@@ -146,6 +173,44 @@ export default function ResidentMaintenancePage() {
                   </option>
                 ))}
               </select>
+            </Field>
+
+            <Field label="Add a photo">
+              <input
+                ref={photoInput}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+                className="sr-only"
+                aria-label="Add a photo of the problem"
+              />
+              {photoPreview ? (
+                <div className="flex items-center gap-3">
+                  {/* A local preview of the chosen file, so next/image does not apply. */}
+                  <img src={photoPreview} alt="Your photo" className="w-20 h-20 rounded-xl object-cover bg-secondary" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPhoto(null);
+                      if (photoInput.current) photoInput.current.value = "";
+                    }}
+                    className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                  >
+                    Remove photo
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => photoInput.current?.click()}
+                  className="w-full px-4 py-3 rounded-xl border border-dashed border-border bg-canvas text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors"
+                >
+                  Take or choose a photo
+                </button>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                Optional. Your manager and building staff can see it. Try to keep people out of the picture.
+              </p>
             </Field>
 
             {units.length > 1 && (

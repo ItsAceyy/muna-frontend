@@ -6,11 +6,13 @@ import { usePathname } from "next/navigation";
 import SubscriptionGate from "@/components/SubscriptionGate";
 import { PropertyProvider, useProperty } from "@/lib/property-context";
 import { logout } from "@/lib/auth";
+import { hasModule } from "@/lib/vertical";
 
-const NAV_ITEMS = [
+const NAV_ITEMS: { href: string; label: string; module?: string }[] = [
   { href: "/guard", label: "On site" },
   { href: "/guard/checkin", label: "Check in" },
   { href: "/guard/log", label: "Log" },
+  { href: "/guard/deliveries", label: "Deliveries", module: "packages" },
 ];
 
 // A guard is scoped to exactly one property and never holds manager access to it,
@@ -38,7 +40,7 @@ function DeskClock() {
 
 function GuardBar() {
   const pathname = usePathname();
-  const { propertyName, loading } = useProperty();
+  const { propertyName, propertyConfig, loading } = useProperty();
 
   return (
     <header className="bg-ink text-white sticky top-0 z-20">
@@ -62,8 +64,8 @@ function GuardBar() {
         </div>
       </div>
 
-      <nav className="flex gap-1 px-4 pb-1">
-        {NAV_ITEMS.map((item) => {
+      <nav className="flex gap-1 px-4 pb-1 overflow-x-auto">
+        {NAV_ITEMS.filter((item) => !item.module || hasModule(propertyConfig, item.module)).map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
@@ -72,8 +74,8 @@ function GuardBar() {
               aria-current={isActive ? "page" : undefined}
               className={
                 isActive
-                  ? "px-5 py-3 text-sm font-medium rounded-t-lg bg-canvas text-ink"
-                  : "px-5 py-3 text-sm font-medium rounded-t-lg text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+                  ? "shrink-0 px-5 py-3 text-sm font-medium rounded-t-lg bg-canvas text-ink"
+                  : "shrink-0 px-5 py-3 text-sm font-medium rounded-t-lg text-white/60 hover:text-white hover:bg-white/5 transition-colors"
               }
             >
               {item.label}
