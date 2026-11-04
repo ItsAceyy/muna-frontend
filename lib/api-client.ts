@@ -19,6 +19,10 @@ function getToken(): string | null {
   return localStorage.getItem("muna_token");
 }
 
+export function hasToken(): boolean {
+  return getToken() !== null;
+}
+
 export function setToken(token: string) {
   localStorage.setItem("muna_token", token);
 }

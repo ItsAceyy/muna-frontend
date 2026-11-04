@@ -62,7 +62,7 @@ export default function SubscriptionGate({ children }: { children: ReactNode }) 
   return (
     <>
       {sub?.warn && (
-        <div role="status" className="border-b border-border bg-card px-8 py-2.5 text-sm text-foreground">
+        <div role="status" className="border-b border-border bg-card px-4 md:px-8 py-2.5 text-sm text-foreground">
           {sub.status === "grace" ? (
             <>
               Payment for {sub.property_name} is overdue. Access stops on{" "}

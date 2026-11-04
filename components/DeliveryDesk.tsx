@@ -113,7 +113,7 @@ export default function DeliveryDesk({ loadUnits }: { loadUnits: (propertyId: st
     "w-full h-12 px-4 rounded-xl border border-border/60 bg-canvas text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/40";
 
   return (
-    <div className="px-6 py-6 max-w-4xl mx-auto">
+    <div className="px-4 py-6 md:px-6 max-w-4xl mx-auto">
       <div className="mb-5">
         <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">At the desk</p>
         <h1 className="text-3xl font-display font-medium text-foreground">
@@ -123,7 +123,7 @@ export default function DeliveryDesk({ loadUnits }: { loadUnits: (propertyId: st
 
       <section className="rounded-2xl bg-card border border-border/60 p-5 mb-6">
         <h2 className="text-sm font-medium text-foreground mb-3">A delivery has arrived</h2>
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)_auto] sm:items-end">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)_auto] sm:items-end">
           <label className="block">
             <span className="block text-xs font-medium text-muted-foreground mb-1">For {config.space_noun.toLowerCase()}</span>
             <select value={unitId} onChange={(e) => setUnitId(e.target.value)} className={inputClass} disabled={units.length === 0}>

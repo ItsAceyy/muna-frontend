@@ -67,7 +67,7 @@ export default function StaffPage() {
   }
 
   return (
-    <div className="px-8 py-8 max-w-4xl">
+    <div className="px-4 py-6 md:px-8 md:py-8 max-w-4xl">
       <div className="mb-8">
         <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Staff</p>
         <h1 className="text-3xl font-display font-medium text-foreground">Guards</h1>
@@ -75,7 +75,7 @@ export default function StaffPage() {
 
       {/* Invite guard card */}
       <section className="mb-10">
-        <div className="bg-card rounded-2xl shadow-sm border border-border/60 p-6 max-w-md">
+        <div className="bg-card rounded-2xl shadow-sm border border-border/60 p-5 md:p-6 max-w-md">
           <h2 className="text-sm font-medium text-foreground mb-1">Invite a guard</h2>
           <p className="text-xs text-muted-foreground mb-4">
             They&apos;ll get a link to set up their account and sign in on their own from then on.
@@ -130,17 +130,17 @@ export default function StaffPage() {
               {staff.map((member) => (
                 <li
                   key={member.user_id}
-                  className="flex items-center justify-between px-6 py-4"
+                  className="flex items-center justify-between gap-3 px-4 md:px-6 py-4"
                 >
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground break-words">
                       {member.full_name || member.email}
                     </p>
                     {member.full_name && (
-                      <p className="text-xs text-muted-foreground">{member.email}</p>
+                      <p className="text-xs text-muted-foreground break-words">{member.email}</p>
                     )}
                   </div>
-                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-sage/10 text-sage">
+                  <span className="shrink-0 text-xs font-medium px-2.5 py-1 rounded-full bg-sage/10 text-sage">
                     {ROLE_LABELS[member.role] || member.role}
                   </span>
                 </li>

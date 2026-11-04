@@ -3,6 +3,7 @@
 import { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import RequireSession from "@/components/RequireSession";
 import SubscriptionGate from "@/components/SubscriptionGate";
 import { PropertyProvider, useProperty } from "@/lib/property-context";
 import { logout } from "@/lib/auth";
@@ -65,13 +66,15 @@ function ResidentBar() {
 
 export default function ResidentLayout({ children }: { children: ReactNode }) {
   return (
-    <PropertyProvider roles={RESIDENT_ROLES}>
-      <div className="min-h-screen bg-canvas flex flex-col">
-        <ResidentBar />
-        <main className="flex-1 min-w-0">
+    <RequireSession>
+      <PropertyProvider roles={RESIDENT_ROLES}>
+        <div className="min-h-screen bg-canvas flex flex-col">
+          <ResidentBar />
+          <main className="flex-1 min-w-0">
             <SubscriptionGate>{children}</SubscriptionGate>
           </main>
-      </div>
-    </PropertyProvider>
+        </div>
+      </PropertyProvider>
+    </RequireSession>
   );
 }
