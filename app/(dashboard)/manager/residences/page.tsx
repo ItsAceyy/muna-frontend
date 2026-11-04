@@ -150,8 +150,8 @@ export default function ResidencesPage() {
   }
 
   return (
-    <div className="px-8 py-8 max-w-4xl">
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+    <div className="px-4 py-6 md:px-8 md:py-8 max-w-4xl">
+      <div className="mb-6 md:mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Residences</p>
           <h1 className="text-3xl font-display font-medium text-foreground">
@@ -180,12 +180,12 @@ export default function ResidencesPage() {
         <div className="bg-card rounded-2xl divide-y divide-border/60 shadow-sm border border-border/60">
           {units.map((unit) => (
             <div key={unit.id}>
-              <div className="flex items-center justify-between px-4 py-3 hover:bg-muted/40 transition-colors duration-150">
-                <div>
-                  <div className="font-medium text-sm text-foreground">{unit.unit_number}</div>
-                  <div className="text-xs text-muted-foreground">{describeUnit(unit)}</div>
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3 hover:bg-muted/40 transition-colors duration-150">
+                <div className="min-w-0 flex-1 basis-32">
+                  <div className="font-medium text-sm text-foreground break-words">{unit.unit_number}</div>
+                  <div className="text-xs text-muted-foreground break-words">{describeUnit(unit)}</div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="ml-auto flex flex-wrap items-center justify-end gap-2 md:gap-3">
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${
                       STATUS_COLORS[unit.status] ?? "bg-muted text-muted-foreground"

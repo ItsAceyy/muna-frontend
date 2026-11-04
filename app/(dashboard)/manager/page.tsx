@@ -7,7 +7,7 @@ import { OccupancyRate, WorkOrder } from "@/lib/types";
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-card rounded-xl border border-border shadow-sm p-5">
+    <div className="bg-card rounded-xl border border-border shadow-sm p-4 md:p-5 min-w-0">
       <p className="text-xs text-muted-foreground mb-2">{label}</p>
       <p className="text-2xl font-semibold text-foreground">{value}</p>
     </div>
@@ -105,20 +105,20 @@ export default function ManagerHomePage() {
 
   return (
     <div className="bg-canvas min-h-full">
-      <div className="px-8 py-6 flex items-center justify-between">
+      <div className="px-4 py-6 md:px-8 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
         <button className="px-4 py-2 rounded-lg bg-ink hover:opacity-90 text-primary-foreground text-sm font-medium transition-colors">
           + New Request
         </button>
       </div>
 
-      <div className="px-8 pb-10 space-y-8">
-        <div className="bg-card rounded-xl border border-border shadow-sm p-6">
+      <div className="px-4 pb-10 md:px-8 space-y-6 md:space-y-8">
+        <div className="bg-card rounded-xl border border-border shadow-sm p-5 md:p-6">
           <p className="text-lg font-semibold text-foreground">Good day</p>
           <p className="text-sm text-muted-foreground mt-1">{today}</p>
         </div>
 
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <StatCard label="Occupancy Rate" value={occupancyRateLabel} />
           <StatCard label="Pending Maintenance" value={String(openTickets.length)} />
           <StatCard label="Staff On Duty" value="-" />
@@ -126,8 +126,8 @@ export default function ManagerHomePage() {
         </div>
         {occupancyError && <p className="text-sm text-rust">{occupancyError}</p>}
 
-        <div className="grid grid-cols-3 gap-6">
-          <div className="col-span-2 bg-card rounded-xl border border-border shadow-sm p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 min-w-0 bg-card rounded-xl border border-border shadow-sm p-5 md:p-6">
             <h2 className="text-sm font-semibold text-foreground mb-4">Recent Activity</h2>
 
             {ticketsError && <p className="text-sm text-rust">{ticketsError}</p>}
@@ -147,9 +147,9 @@ export default function ManagerHomePage() {
             {!ticketsError && tickets && tickets.length > 0 && (
               <div className="divide-y divide-border">
                 {tickets.slice(0, 5).map((t) => (
-                  <div key={t.id} className="flex items-center justify-between py-3">
-                    <span className="text-sm text-foreground">{t.title}</span>
-                    <span className="text-xs text-faint capitalize">
+                  <div key={t.id} className="flex items-center justify-between gap-3 py-3">
+                    <span className="min-w-0 text-sm text-foreground break-words">{t.title}</span>
+                    <span className="shrink-0 text-xs text-faint capitalize">
                       {t.status.replace("_", " ")}
                     </span>
                   </div>
@@ -158,7 +158,7 @@ export default function ManagerHomePage() {
             )}
           </div>
 
-          <div className="bg-card rounded-xl border border-border shadow-sm p-6">
+          <div className="min-w-0 bg-card rounded-xl border border-border shadow-sm p-5 md:p-6">
             <h2 className="text-sm font-semibold text-foreground mb-4">Quick Actions</h2>
             <div className="space-y-2">
               <QuickAction label="Invite Guard" href="/manager/staff" />
@@ -168,7 +168,7 @@ export default function ManagerHomePage() {
           </div>
         </div>
 
-        <div className="bg-card rounded-xl border border-border shadow-sm p-6">
+        <div className="bg-card rounded-xl border border-border shadow-sm p-5 md:p-6">
           <h2 className="text-sm font-semibold text-foreground mb-4">Maintenance Overview</h2>
 
           {!tickets && <div className="h-24 bg-muted rounded-lg animate-pulse" />}
@@ -177,7 +177,7 @@ export default function ManagerHomePage() {
             <div className="space-y-3">
               {statusRows.map((row) => (
                 <div key={row.label} className="flex items-center gap-3">
-                  <span className="text-xs text-muted-foreground w-28 shrink-0">{row.label}</span>
+                  <span className="text-xs text-muted-foreground w-24 md:w-28 shrink-0">{row.label}</span>
                   <div className="flex-1 h-2.5 rounded-full bg-muted overflow-hidden">
                     <div
                       className={"h-full rounded-full " + row.color}

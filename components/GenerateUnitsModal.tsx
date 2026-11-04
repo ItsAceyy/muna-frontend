@@ -337,7 +337,7 @@ export default function GenerateUnitsModal({
               <p className="text-xs font-medium text-muted-foreground">
                 {option.usesFloors ? "Type at each position on a floor" : "Type of each unit"}
               </p>
-              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              <label className="flex min-w-0 max-w-full items-center gap-2 whitespace-nowrap text-xs text-muted-foreground">
                 Set all to
                 <select
                   value=""
@@ -345,7 +345,7 @@ export default function GenerateUnitsModal({
                     const value = e.target.value;
                     if (value) setLayout((prev) => prev.map(() => value));
                   }}
-                  className={`${inputClass} py-1 text-xs`}
+                  className={`${inputClass} min-w-0 py-1 text-xs`}
                 >
                   <option value="">Choose…</option>
                   {typeOptions}

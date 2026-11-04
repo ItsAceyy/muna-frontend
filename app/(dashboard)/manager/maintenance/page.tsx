@@ -121,7 +121,7 @@ function TicketPanel({
         </div>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2 max-w-xl">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 max-w-xl">
         <label className="block">
           <span className="block text-xs font-medium text-muted-foreground mb-1">Status</span>
           <select
@@ -229,7 +229,7 @@ export default function MaintenancePage() {
     tickets?.filter((t) => t.status !== "resolved" && t.status !== "closed").length ?? 0;
 
   return (
-    <div className="px-8 py-8 max-w-4xl">
+    <div className="px-4 py-6 md:px-8 md:py-8 max-w-4xl">
       <div className="mb-8">
         <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Maintenance</p>
         <h1 className="text-3xl font-display font-medium text-foreground">
@@ -250,15 +250,15 @@ export default function MaintenancePage() {
             const unitNumber = unitNumbers[ticket.unit_id];
             return (
               <div key={ticket.id}>
-                <div className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-muted/40 transition-colors duration-150">
-                  <div className="min-w-0">
-                    <div className="font-medium text-sm text-foreground">{ticket.title}</div>
+                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3 hover:bg-muted/40 transition-colors duration-150">
+                  <div className="min-w-0 flex-1 basis-48">
+                    <div className="font-medium text-sm text-foreground break-words">{ticket.title}</div>
                     <div className={`text-xs capitalize ${PRIORITY_COLORS[ticket.priority] ?? "text-muted-foreground"}`}>
                       {unitNumber ? `${config.space_noun} ${unitNumber} · ` : ""}
                       {ticket.priority} priority
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="ml-auto flex items-center gap-3 shrink-0">
                     <span
                       className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                         TICKET_STATUS_COLORS[ticket.status] ?? "bg-muted text-muted-foreground"
