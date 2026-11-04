@@ -115,6 +115,12 @@ function Sidebar() {
       </nav>
 
       <div className="px-5 py-5 border-t border-sidebar-border">
+        <button
+          onClick={logout}
+          className="block text-xs text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors mb-3"
+        >
+          Sign out
+        </button>
         <p className="text-[10px] uppercase tracking-[0.14em] text-sidebar-foreground/30">
           Muna by Horus Group
         </p>
