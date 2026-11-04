@@ -1,9 +1,10 @@
 "use client";
 
-import { ReactNode, useEffect, useRef } from "react";
+import { ReactNode, useEffect, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import SubscriptionGate from "@/components/SubscriptionGate";
+import { hasToken } from "@/lib/api-client";
 import { logout } from "@/lib/auth";
 import { PropertyProvider, useProperty } from "@/lib/property-context";
 import { hasModule } from "@/lib/vertical";
@@ -147,19 +148,47 @@ function TopBar() {
   );
 }
 
+// Re-check on "storage" for a sign-out in another tab, and on "pageshow" because the
+// back button can restore a signed-out page from memory without running it again.
+function subscribeToSession(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  window.addEventListener("pageshow", onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener("pageshow", onChange);
+  };
+}
+
+/** The token lives in localStorage, so only the browser can tell whether someone is
+ *  signed in. Nothing renders until it has, otherwise the pages call the API without
+ *  a token and show its "Not authenticated" reply. */
+function RequireSession({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  const signedIn = useSyncExternalStore(subscribeToSession, hasToken, () => null);
+
+  useEffect(() => {
+    if (signedIn === false) router.replace("/login");
+  }, [signedIn, router]);
+
+  if (!signedIn) return <div className="min-h-screen bg-canvas" />;
+  return children;
+}
+
 export default function ManagerLayout({ children }: { children: ReactNode }) {
   return (
-    <PropertyProvider>
-      <div className="flex flex-col md:flex-row min-h-screen bg-canvas">
-        <MobileBar />
-        <Sidebar />
-        <div className="flex-1 min-w-0 flex flex-col">
-          <TopBar />
-          <main className="flex-1 min-w-0">
-            <SubscriptionGate>{children}</SubscriptionGate>
-          </main>
+    <RequireSession>
+      <PropertyProvider>
+        <div className="flex flex-col md:flex-row min-h-screen bg-canvas">
+          <MobileBar />
+          <Sidebar />
+          <div className="flex-1 min-w-0 flex flex-col">
+            <TopBar />
+            <main className="flex-1 min-w-0">
+              <SubscriptionGate>{children}</SubscriptionGate>
+            </main>
+          </div>
         </div>
-      </div>
-    </PropertyProvider>
+      </PropertyProvider>
+    </RequireSession>
   );
 }
