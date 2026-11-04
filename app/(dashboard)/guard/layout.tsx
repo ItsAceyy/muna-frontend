@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import RequireSession from "@/components/RequireSession";
 import SubscriptionGate from "@/components/SubscriptionGate";
 import { PropertyProvider, useProperty } from "@/lib/property-context";
 import { logout } from "@/lib/auth";
@@ -89,13 +90,15 @@ function GuardBar() {
 
 export default function GuardLayout({ children }: { children: ReactNode }) {
   return (
-    <PropertyProvider roles={GUARD_ROLES}>
-      <div className="min-h-screen bg-canvas flex flex-col">
-        <GuardBar />
-        <main className="flex-1 min-w-0">
+    <RequireSession>
+      <PropertyProvider roles={GUARD_ROLES}>
+        <div className="min-h-screen bg-canvas flex flex-col">
+          <GuardBar />
+          <main className="flex-1 min-w-0">
             <SubscriptionGate>{children}</SubscriptionGate>
           </main>
-      </div>
-    </PropertyProvider>
+        </div>
+      </PropertyProvider>
+    </RequireSession>
   );
 }
